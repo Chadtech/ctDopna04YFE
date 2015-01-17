@@ -20,14 +20,14 @@ gulp.task 'server', (cb) ->
 
 gulp.task 'coffee', ->
   bCache = {}
-  b = browserify './client/js/ctDPNQPTFS03.coffee',
+  b = browserify './client/js/index.coffee',
     debug: true
     interestGlobals: false
     cache: bCache
     extensions: ['.coffee']
   b.transform coffeeify
   b.bundle()
-  .pipe source 'ctDPNQPTFS03.js'
+  .pipe source 'index.js'
   .pipe buffer()
   .pipe gulp.dest paths.public
   .pipe reload()
