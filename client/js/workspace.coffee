@@ -21,6 +21,11 @@ WorkSpace = React.createClass
 
   render: ->
     div {},
+
+
+      # Options
+
+
       div {className: 'row'},
         div {className: 'column'},
 
@@ -48,6 +53,44 @@ WorkSpace = React.createClass
             className: 'submit'
             type:      'submit'
             value:     'play'
+
+      div {className: 'row'},
+        div {className: 'column half'},
+          
+          p
+            className: 'point'
+            'part'
+
+        div {className: 'column half'},
+
+          input
+            className: 'input half'
+
+        div {className: 'column half'},
+
+          p
+            className: 'point'
+            'bar is'
+
+        div {className: 'column half'},
+
+          input
+            className: 'input half'
+
+        div {className: 'column half'},
+          
+          p
+            className: 'point'
+            'sub is'
+
+        div {className: 'column half'},
+
+          input
+            className: 'input half'
+
+
+
+      # Dimensions
 
 
       div {className: 'row'},
