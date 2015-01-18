@@ -12,11 +12,34 @@ app.use bodyParser.json()
 
 PORT = Number process.env.PORT or 1776
 
-# router = express.Router()
+router = express.Router()
 
-# router.use (request, response, next) ->
-#   console.log 'SOMETHIGN HAPPEN'
-#   next()
+router.route '/create'
+  .post (request, response, next) ->
+
+    projectString = request.body.project
+    project       = JSON.parse request.body.project
+
+    if not fs.existsSync project.name
+      fs.mkdirSync project.name
+      pathToJSON = project.name + '/' + project.name + '.json'
+      fs.writeFileSync pathToJSON, request.body.project
+      response.json message: 'worked'
+    else
+      response.json message: 'didnt worked'
+
+router.route '/open'
+  .get (request, response, next) ->
+
+    projectString = request.body.project
+    project       = JSON.parse request.body.project
+
+    if fs.existsSync project.name
+      response.json message: 'DOINK'
+
+  # router.use (request, response, next) ->
+  #   console.log 'SOMETHIGN HAPPEN'
+  #   next()
 
 # router.route '/:project'
 #   .get (request, response, next) ->
@@ -60,7 +83,8 @@ PORT = Number process.env.PORT or 1776
 
 
 
-# app.use '/api', router
+app.use '/api', router
+
 app.use express.static join __dirname, 'public'
 
 app.get '/', (request, response, next) ->

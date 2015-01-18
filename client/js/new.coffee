@@ -5,24 +5,38 @@ $      = require 'jquery'
 # DOM Elements
 {p, div, input} = React.DOM
 
+PORT = 1776
+
 NewPiece = React.createClass
   getInitialState: ->
     name:          ''
+
     scale:         ['1.0', '1.125', '1.25', '1.33333', '1.5', '1.66667', '1.875']
     scaleState:    'xx'
     scaleClass:    'submit half'
-    ensemble:      []
+
+    ensemble:      [{name: '', type: '', xPos: '', yPos: ''}]
     ensembleState: 'xx'
     ensembleClass: 'submit half'
+
+    dimensions:    ['sustain', 'amplitude', 'tone']
+    dimensionState:'xx'
+    dimensionClass:'submit half'
+
+    leftConvolvement:   ''
+    rightConvolvement:  ''
+
 
   changeScaleItem: (event) ->
     intervalIndex = event.getAttribute 'data-index'
     @state.scale[intervalIndex] = event.target.value
     @setState scale: @state.scale
 
+
   addScaleItem: ->
     @state.scale.push ''
     @setState scale: @state.scale
+
 
   destroyScale: ->
     if @state.scaleState is 'xx'
@@ -33,25 +47,30 @@ NewPiece = React.createClass
       @setState scaleClass: 'submit half'
       @setState scale:      []
 
+
   changeVoiceName: (event) ->
     voiceIndex = event.target.getAttribute 'data-index'
     @state.ensemble[voiceIndex].name = event.target.value
     @setState ensemble: @state.ensemble
+
 
   changeVoiceType: (event) ->
     voiceIndex = event.target.getAttribute 'data-index'
     @state.ensemble[voiceIndex].type = event.target.value
     @setState ensemble: @state.ensemble
 
+
   changeVoiceXPos: (event) ->
     voiceIndex = event.target.getAttribute 'data-index'
     @state.ensemble[voiceIndex].xPos = event.target.value
     @setState ensemble: @state.ensemble
 
+
   changeVoiceYPos: (event) ->
     voiceIndex = event.target.getAttribute 'data-index'
     @state.ensemble[voiceIndex].yPos = event.target.value
     @setState ensemble: @state.ensemble
+
 
   addEnsembleItem: ->
     voiceTemplate =
@@ -62,8 +81,9 @@ NewPiece = React.createClass
     @state.ensemble.push voiceTemplate
     @setState ensemble: @state.ensemble
 
-  destroyEnsemble: ->
-    if @state.ensembleClass is 'xx'
+
+  destroyEnsemble: (event) ->
+    if @state.ensembleState is 'xx'
       @setState ensembleState: 'x'
       @setState ensembleClass: 'submit half critical'
     else
@@ -71,8 +91,62 @@ NewPiece = React.createClass
       @setState ensembleClass: 'submit half'
       @setState ensemble:      []
 
+
+  changeDimensionName: (event) ->
+    dimensionIndex = event.target.getAttribute 'data-index'
+    @state.dimensions[dimensionIndex] = event.target.value
+    @setState dimensions: @state.dimensions
+
+
+  addDimension: ->
+    @state.dimensions.push ''
+    @setState dimensions: @state.dimensions
+
+
+  changeLeftConvolvement: (event) ->
+    @setState leftConvolvement: event.target.value
+
+
+  changeRightConvolvement: (event) ->
+    @setState rightConvolvement: event.target.value
+
+
+  changeName: (event) ->
+    @setState name: event.target.value
+
+
+  createNewProject: ->
+    firstPart = 
+      time: [1]
+      score: _.map @state.ensemble, (voice) => 
+        singleNote = {}
+        for dimension in @state.dimensions
+          singleNote[dimension] = ''
+        [singleNote]
+
+    project = 
+      name:               @state.name
+      scale:              @state.scale
+      ensemble:           @state.ensemble
+      dimensions:         @state.dimensions
+      leftConvolvement:   @state.leftConvolvement
+      rightConvolvement:  @state.rightConvolvement
+      parts:              [firstPart]
+
+    destinationURL = 'http://localhost:'
+    destinationURL += PORT
+    destinationURL += '/api/create'
+
+    projectJSON = JSON.stringify project, null, 2
+    projectJSON = project: projectJSON
+    $.post destinationURL, projectJSON
+      .done (data) =>
+        if data.message is 'worked'
+          @props.updateState true, project
+        console.log data.message
+
   render: ->
-    div {className: 'column triple'},
+    div {className: 'column super'},
       div {className: 'container'},
         div {className: 'row'},
           div {className: 'column'},
@@ -81,12 +155,15 @@ NewPiece = React.createClass
               className:  'submit'
               type:       'submit'
               value:      'New'
+              onClick:    @createNewProject
 
           div {className: 'column oneAndHalf'},
 
             input
               className:    'input double'
-              placeholder: '<name>'
+              placeholder:  '<name>'
+              value:        @state.name
+              onChange:     @changeName
 
         div {className: 'row'},
 
@@ -173,7 +250,6 @@ NewPiece = React.createClass
                     className: 'point'
                     'y pos'
 
-
               _.map @state.ensemble, (voice, voiceIndex) =>
                 div {className: 'row'},
                   div {className: 'column half'},
@@ -222,8 +298,76 @@ NewPiece = React.createClass
                     onClick:   @destroyEnsemble
 
 
+          # Dimensions
+          
+
+          div {className: 'column'},
+            div {className: 'container'},
+              
+              div {className: 'row'},
+                div {className: 'column'},
+
+                  p
+                    className: 'point'
+                    'dimensions'
+
+              _.map @state.dimensions, (dimension, dimensionIndex) =>
+                div {className: 'row'},
+                  div {className: 'column'},
+
+                    input
+                      className:    'input'
+                      value:        @state.dimensions[dimensionIndex]
+                      'data-index': dimensionIndex
+                      onChange:     @changeDimensionName
+
+              div {className: 'row'},
+                div {className: 'column half'},
+
+                  input
+                    className: 'submit half'
+                    type:      'submit'
+                    value:     '+'
+                    onClick:   @addDimension
+
+                div {className: 'column half'},
+
+                  input
+                    className: @state.dimensionClass
+                    type:      'submit'
+                    value:     @state.dimensionState
+                    onClick:   @destroyDimensions
 
 
+          # Convolvement
+          
 
+          div {className: 'column double'},
+            div {className: 'container'},
+              
+              div {className: 'row'},
+                div {className: 'column double'},
+
+                  p
+                    className: 'point'
+                    'convolvement'
+
+              div {className: 'row'},
+                div {className: 'column double'},
+
+                  input
+                    className:    'input double'
+                    placeholder:  '<left convolvement>'
+                    value:        @state.leftConvolvement
+                    onChange:    @changeLeftConvolvement
+
+              div {className: 'row'},
+                div {className: 'column double'},
+
+                  input
+                    className:    'input double'
+                    placeholder:  '<right convolvement>'
+                    value:        @state.rightConvolvement
+                    onChange:     @changeRightConvolvement
 
 module.exports = NewPiece

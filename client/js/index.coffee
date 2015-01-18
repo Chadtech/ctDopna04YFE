@@ -6,11 +6,20 @@ $      = require 'jquery'
 NewPiece  = require './new'
 OpenPiece = require './open'
 Title     = require './title'
+WorkSpace = require './workspace'
 
 # DOM Elements
 {p, div, input} = React.DOM
 
 IndexClass = React.createClass
+  getInitialState: ->
+    projectSet:  false
+    project: null
+
+  updateState: (newState, project) ->
+    @setState project: project, ->
+      @setState projectSet: newState
+
   render: ->
     div {},
       div {className: 'spacer'}
@@ -19,12 +28,21 @@ IndexClass = React.createClass
           div {className: 'row'},
 
             Title()
-          
-          div {className: 'row'},
 
-            NewPiece()
+          if @state.projectSet
+            WorkSpace project: @state.project
 
-            OpenPiece()
+          else
+            div {},
+              div {className: 'row'},
+
+                OpenPiece updateState: @updateState
+
+              div {className: 'row'},
+
+                NewPiece updateState: @updateState
+
+
 
       div {className: 'spacer'}
 
