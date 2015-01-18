@@ -17,16 +17,10 @@ OpenPiece = React.createClass
               type:       'submit'
               value:      'Open'
 
-        div {className: 'row'},
-
-          div {className: 'column'},
-
-            p
-              className: 'point'
-              'name'
-          div {className: 'column'},
+          div {className: 'column oneAndHalf'},
 
             input
-              className: 'input'
+              className:   'input double'
+              placeholder: '<name>'
 
 module.exports = OpenPiece

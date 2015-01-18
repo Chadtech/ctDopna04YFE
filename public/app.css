@@ -30,16 +30,17 @@ body {
 }
 .column {
   float: left;
-  padding-left: 1em;
-  padding-right: 1em;
   width: 194px;
   min-height: 1.75em;
 }
 .column.quarter {
-  width: 44px;
+  width: 48px;
 }
 .column.half {
   width: 97px;
+}
+.column.threeQuarters {
+  width: 145px;
 }
 .column.oneAndHalf {
   width: 291px;
@@ -132,8 +133,14 @@ body {
 .input.verySpecial {
   background: #302a14;
 }
+.input.quarter {
+  width: 44px;
+}
 .input.half {
   width: 88px;
+}
+.input.threeQuarters {
+  width: 137px;
 }
 .input.oneAndHalf {
   width: 282px;
