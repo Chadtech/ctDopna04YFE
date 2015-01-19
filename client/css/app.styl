@@ -145,12 +145,26 @@ body
   specifyFont(rgba(0, 0, 0, 1))
   background rgba(64, 64, 64, 1)
   text-decoration none
+  &.quarter
+    width 38px
   &.half
     width 88px
   &.critical
     background #f23d21
     &:hover
       background #f29d31
+      
+  &.danger
+    background #723d21
+    &:hover
+      color rgba(0, 0, 0, 1)
+      background #f23d21
+      
+  &.good
+    background #2a6a3a
+    &:hover
+      background #0aca1a
+
   &.current
     background rgba(192, 192, 192, 1)
     color rgba(64, 64, 64, 1)

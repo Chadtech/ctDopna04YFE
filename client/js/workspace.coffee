@@ -8,6 +8,10 @@ WorkSpace = React.createClass
   getInitialState: ->
     project: @props.project
 
+    dimensions: @props.project.dimensions
+    score: @props.project.parts[0].score
+    time:  @props.project.parts[0].time
+
     currentDimension: 0
     currentBar:       0
     currentPart:      0
@@ -19,12 +23,49 @@ WorkSpace = React.createClass
     @setState currentDimension: event.target.getAttribute 'data-index'
 
 
-  # addNoteAt: (event) ->
-  #   @state.project.parts
+  addNoteAt: (event) ->
+    spotToAddTo = event.target.getAttribute 'data-index'
+    spotToAddTo++
+    emptyNote = {}
+
+    for dimension in @state.dimensions
+      emptyNote[dimension] = ''
+
+    for voice in @state.score
+      voice.splice spotToAddTo, 0, _.clone emptyNote, true
+
+    @setState score: @state.score
 
 
-  # removeNoteAt: (event) ->
-    
+  removeNoteAt: (event) ->
+    spotToRemoveFrom = event.target.getAttribute 'data-index'
+
+    for voice in @state.score
+      voice.splice spotToRemoveFrom, 1
+
+
+  barHighLight: (beatIndex) ->
+    barModulus = beatIndex % @state.barLength
+    subModulus = beatIndex % @state.subLength
+    barModulusIsZero = barModulus is 0
+    subModulusIsZero = subModulus is 0
+    if barModulusIsZero or subModulusIsZero
+      if barModulusIsZero
+        ' verySpecial'
+      else
+        ' special'
+    else
+      ''
+
+
+  noteUpdate: (event) ->
+    voiceIndex       = event.target.getAttribute 'data-voice'
+    noteIndex        = event.target.getAttribute 'data-note'
+    newValue         = event.target.value
+    currentDimension = @state.dimensions[@state.currentDimension]
+
+    @state.score[voiceIndex][noteIndex][currentDimension] = newValue
+    @setState score: @state.score
 
 
   render: ->
@@ -109,7 +150,7 @@ WorkSpace = React.createClass
             className: 'point'
             'dimensions'
 
-        _.map @state.project.dimensions, (dimension, dimensionIndex) =>
+        _.map @state.dimensions, (dimension, dimensionIndex) =>
 
           div {className: 'column'},
 
@@ -126,9 +167,9 @@ WorkSpace = React.createClass
           
           p
             className: 'point'
-            @state.project.dimensions[@state.currentDimension]
+            @state.dimensions[@state.currentDimension]
 
-        _.map @state.project.ensemble, (voice, voiceIndex) =>
+        _.map @state.ensemble, (voice, voiceIndex) =>
 
           div {className: 'column half'},
 
@@ -137,7 +178,7 @@ WorkSpace = React.createClass
               voice.name
 
 
-      _.map @state.project.parts[@state.currentPart].score[0], (note, noteIndex) =>
+      _.map @state.score[0], (note, noteIndex) =>
         div {className: 'row'},
           div {className: 'column'},
 
@@ -145,26 +186,29 @@ WorkSpace = React.createClass
               className: 'point'
               noteIndex
 
-          _.map @state.project.parts[@state.currentPart].score, (voice, voiceIndex) =>
+          _.map @state.score, (voice, voiceIndex) =>
             div {className: 'column half'},
 
               input
-                className: 'input half'
-                value:     voice[noteIndex][@state.currentDimension]
+                className:    'input half' + @barHighLight(noteIndex)
+                value:        voice[noteIndex][@state.dimensions[@state.currentDimension]]
+                'data-note':  noteIndex
+                'data-voice': voiceIndex
+                onChange:     @noteUpdate
 
-          div {className: 'column half'},
+          div {className: 'column quarter'},
 
             input
-              className:    'submit half'
+              className:    'submit quarter good'
               type:         'submit'
               value:        'v'
               'data-index': noteIndex
               onClick:      @addNoteAt
 
-          div {className: 'column half'},
+          div {className: 'column quarter'},
 
             input
-              className:    'submit half'
+              className:    'submit quarter danger'
               type:         'submit'
               value:        'x'
               'data-index': noteIndex

@@ -179,6 +179,9 @@ body {
   border: none;
   outline: none;
 }
+.submit.quarter {
+  width: 38px;
+}
 .submit.half {
   width: 88px;
 }
@@ -187,6 +190,19 @@ body {
 }
 .submit.critical:hover {
   background: #f29d31;
+}
+.submit.danger {
+  background: #723d21;
+}
+.submit.danger:hover {
+  color: #000;
+  background: #f23d21;
+}
+.submit.good {
+  background: #2a6a3a;
+}
+.submit.good:hover {
+  background: #0aca1a;
 }
 .submit.current {
   background: #c0c0c0;
