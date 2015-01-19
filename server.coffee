@@ -29,13 +29,20 @@ router.route '/create'
       response.json message: 'didnt worked'
 
 router.route '/open'
-  .get (request, response, next) ->
+  .post (request, response, next) ->
 
-    projectString = request.body.project
-    project       = JSON.parse request.body.project
+    projectName = request.body.projectName
 
-    if fs.existsSync project.name
-      response.json message: 'DOINK'
+
+    if fs.existsSync projectName
+      pathToFile = projectName + '/' + projectName + '.json'
+      project = fs.readFileSync pathToFile, 'utf8'
+
+      response.json {project: project, message: 'worked'}
+    else
+      response.json message: 'didnt worked'
+
+
 
   # router.use (request, response, next) ->
   #   console.log 'SOMETHIGN HAPPEN'

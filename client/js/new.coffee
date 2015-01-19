@@ -26,6 +26,8 @@ NewPiece = React.createClass
     leftConvolvement:   ''
     rightConvolvement:  ''
 
+    beatLength: ''
+
 
   changeScaleItem: (event) ->
     intervalIndex = event.getAttribute 'data-index'
@@ -115,6 +117,9 @@ NewPiece = React.createClass
     @setState name: event.target.value
 
 
+  changeBeatLength: (event) ->
+    @setState beatLength: event.target.value
+
   createNewProject: ->
     firstPart = 
       time: [1]
@@ -131,6 +136,7 @@ NewPiece = React.createClass
       dimensions:         @state.dimensions
       leftConvolvement:   @state.leftConvolvement
       rightConvolvement:  @state.rightConvolvement
+      beatLength:         @state.beatLength
       parts:              [firstPart]
 
     destinationURL = 'http://localhost:'
@@ -369,5 +375,25 @@ NewPiece = React.createClass
                     placeholder:  '<right convolvement>'
                     value:        @state.rightConvolvement
                     onChange:     @changeRightConvolvement
+
+
+            # Beat Length
+            
+                
+            div {className: 'row'},
+              div {className: 'column double'},
+
+                p
+                  className: 'point'
+                  'beat length'
+
+            div {className: 'row'},
+              div {className: 'column double'},
+
+                input
+                  className:    'input double'
+                  placeholder:  '<duration in samples>'
+                  value:        @state.beatLength
+                  onChange:    @changeBeatLength                  
 
 module.exports = NewPiece

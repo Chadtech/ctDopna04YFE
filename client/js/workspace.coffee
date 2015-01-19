@@ -19,6 +19,14 @@ WorkSpace = React.createClass
     @setState currentDimension: event.target.getAttribute 'data-index'
 
 
+  # addNoteAt: (event) ->
+  #   @state.project.parts
+
+
+  # removeNoteAt: (event) ->
+    
+
+
   render: ->
     div {},
 
@@ -55,6 +63,7 @@ WorkSpace = React.createClass
             value:     'play'
 
       div {className: 'row'},
+        div {className: 'column'}
         div {className: 'column half'},
           
           p
@@ -131,6 +140,7 @@ WorkSpace = React.createClass
       _.map @state.project.parts[@state.currentPart].score[0], (note, noteIndex) =>
         div {className: 'row'},
           div {className: 'column'},
+
             p
               className: 'point'
               noteIndex
@@ -142,6 +152,23 @@ WorkSpace = React.createClass
                 className: 'input half'
                 value:     voice[noteIndex][@state.currentDimension]
 
+          div {className: 'column half'},
+
+            input
+              className:    'submit half'
+              type:         'submit'
+              value:        'v'
+              'data-index': noteIndex
+              onClick:      @addNoteAt
+
+          div {className: 'column half'},
+
+            input
+              className:    'submit half'
+              type:         'submit'
+              value:        'x'
+              'data-index': noteIndex
+              onClick:      @removeNoteAt
 
 
 module.exports = WorkSpace
