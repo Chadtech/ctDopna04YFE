@@ -2,7 +2,25 @@ React  = require 'react'
 _      = require 'lodash'
 $      = require 'jquery'
 
+
 {p, input, div} = React.DOM
+
+
+zeroPadder = (number, numberOfZerosToFill) ->
+  numberAsString = number + ''
+  while numberAsString.length < numberOfZerosToFill
+    numberAsString = '0' + numberAsString
+  numberAsString
+
+
+formatNoteIndex = (noteIndex, barLength) ->
+  numberInBar = noteIndex % parseInt barLength
+  numberOfBar = noteIndex // parseInt barLength
+
+  formattedNoteIndex = '.' + numberInBar
+  formattedNoteIndex = zeroPadder(numberOfBar, 7) + formattedNoteIndex
+  formattedNoteIndex
+
 
 WorkSpace = React.createClass
   getInitialState: ->
@@ -15,8 +33,8 @@ WorkSpace = React.createClass
     currentDimension: 0
     currentBar:       0
     currentPart:      0
-    barLength:        8
-    subLength:        4
+    barLength:        '8'
+    subLength:        '4'
 
 
   changeCurrentDimension: (event) ->
@@ -43,10 +61,12 @@ WorkSpace = React.createClass
     for voice in @state.score
       voice.splice spotToRemoveFrom, 1
 
+    @setState score: @state.score
+
 
   barHighLight: (beatIndex) ->
-    barModulus = beatIndex % @state.barLength
-    subModulus = beatIndex % @state.subLength
+    barModulus = beatIndex % (parseInt @state.barLength)
+    subModulus = barModulus % (parseInt @state.subLength)
     barModulusIsZero = barModulus is 0
     subModulusIsZero = subModulus is 0
     if barModulusIsZero or subModulusIsZero
@@ -67,6 +87,12 @@ WorkSpace = React.createClass
     @state.score[voiceIndex][noteIndex][currentDimension] = newValue
     @setState score: @state.score
 
+
+  changeBarLength: (event) ->
+    @setState barLength: event.target.value
+
+  changeSubLength: (event) ->
+    @setState subLength: event.target.value
 
   render: ->
     div {},
@@ -115,6 +141,7 @@ WorkSpace = React.createClass
 
           input
             className: 'input half'
+            value:     @state.currentPart
 
         div {className: 'column half'},
 
@@ -126,6 +153,8 @@ WorkSpace = React.createClass
 
           input
             className: 'input half'
+            value:     @state.barLength
+            onChange:  @changeBarLength
 
         div {className: 'column half'},
           
@@ -137,6 +166,8 @@ WorkSpace = React.createClass
 
           input
             className: 'input half'
+            value:     @state.subLength
+            onChange:  @changeSubLength
 
 
 
@@ -184,7 +215,7 @@ WorkSpace = React.createClass
 
             p
               className: 'point'
-              noteIndex
+              formatNoteIndex noteIndex, @state.barLength
 
           _.map @state.score, (voice, voiceIndex) =>
             div {className: 'column half'},
