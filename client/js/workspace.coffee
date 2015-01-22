@@ -68,6 +68,7 @@ WorkSpace = React.createClass
     @setState score: @state.score
     @setState time: @state.time
 
+
   removeNoteAt: (event) ->
     spotToRemoveFrom = event.target.getAttribute 'data-index'
 
@@ -306,7 +307,6 @@ WorkSpace = React.createClass
                 value:        @state.time[noteIndex]
                 'data-index': noteIndex
                 onChange:     @changeTime
-
 
 
           _.map @state.score, (voice, voiceIndex) =>

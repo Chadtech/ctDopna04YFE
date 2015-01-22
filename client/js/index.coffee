@@ -16,9 +16,11 @@ IndexClass = React.createClass
     projectSet:  false
     project: null
 
+
   updateState: (newState, project) ->
     @setState project: project, ->
       @setState projectSet: newState
+
 
   render: ->
     div {},
