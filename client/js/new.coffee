@@ -19,7 +19,7 @@ NewPiece = React.createClass
     ensembleState: 'xx'
     ensembleClass: 'submit half'
 
-    dimensions:    ['sustain', 'amplitude', 'tone']
+    dimensions:    ['sustain', 'amplitude', 'tone', 'tonic']
     dimensionState:'xx'
     dimensionClass:'submit half'
 

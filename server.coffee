@@ -1,11 +1,13 @@
-fs = require 'fs'
-express = require 'express'
-app = express()
-http = require 'http'
-{join} = require 'path'
-bodyParser = require 'body-parser'
-Nr = require './noideread'
-_ = require 'lodash'
+fs          = require 'fs'
+express     = require 'express'
+app         = express()
+http        = require 'http'
+{join}      = require 'path'
+bodyParser  = require 'body-parser'
+#Nr = require './noideread'
+_           = require 'lodash'
+init        = require './init'
+
 
 app.use bodyParser.urlencoded {extended: true}
 app.use bodyParser.json()
@@ -13,6 +15,7 @@ app.use bodyParser.json()
 PORT = Number process.env.PORT or 1776
 
 router = express.Router()
+
 
 router.route '/create'
   .post (request, response, next) ->
@@ -28,11 +31,11 @@ router.route '/create'
     else
       response.json message: 'didnt worked'
 
+
 router.route '/open'
   .post (request, response, next) ->
 
     projectName = request.body.projectName
-
 
     if fs.existsSync projectName
       pathToFile = projectName + '/' + projectName + '.json'
@@ -41,6 +44,28 @@ router.route '/open'
       response.json {project: project, message: 'worked'}
     else
       response.json message: 'didnt worked'
+
+
+router.route '/update'
+  .post (request, response, next) ->
+
+    # projectName = request.body.projectName
+
+    # if not fs.existsSync projectName
+    #   fs.mkdirSync projectName
+    # pathToJSON = projectName + '/' + projectName + '.json'
+    # fs.writeFileSync pathToJSON, request.body.project
+
+    response.json {message: 'worked'}
+
+router.route '/init'
+  .post (request, response, next) ->
+
+    projectName = request.body.projectName
+
+    init(projectName, request.body.project)
+
+    response.json {message: 'worked'}
 
 
 

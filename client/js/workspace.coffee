@@ -6,6 +6,9 @@ $      = require 'jquery'
 {p, input, div} = React.DOM
 
 
+PORT = 1776
+
+
 zeroPadder = (number, numberOfZerosToFill) ->
   numberAsString = number + ''
   while numberAsString.length < numberOfZerosToFill
@@ -14,8 +17,12 @@ zeroPadder = (number, numberOfZerosToFill) ->
 
 
 formatNoteIndex = (noteIndex, barLength) ->
-  numberInBar = noteIndex % parseInt barLength
-  numberOfBar = noteIndex // parseInt barLength
+  if barLength isnt ''
+    numberInBar = noteIndex % parseInt barLength
+    numberOfBar = noteIndex // parseInt barLength
+  else
+    numberInBar = 'X'
+    numberOfBar = 'X'
 
   formattedNoteIndex = '.' + numberInBar
   formattedNoteIndex = zeroPadder(numberOfBar, 7) + formattedNoteIndex
@@ -23,12 +30,15 @@ formatNoteIndex = (noteIndex, barLength) ->
 
 
 WorkSpace = React.createClass
+
+
   getInitialState: ->
-    project: @props.project
+    project:    @props.project
 
     dimensions: @props.project.dimensions
-    score: @props.project.parts[0].score
-    time:  @props.project.parts[0].time
+    score:      @props.project.parts[0].score
+    time:       @props.project.parts[0].time
+    ensemble:   @props.project.ensemble
 
     currentDimension: 0
     currentBar:       0
@@ -51,6 +61,8 @@ WorkSpace = React.createClass
 
     for voice in @state.score
       voice.splice spotToAddTo, 0, _.clone emptyNote, true
+
+    @state.time.splice spotToAddTo, 0, 1
 
     @setState score: @state.score
 
@@ -91,8 +103,39 @@ WorkSpace = React.createClass
   changeBarLength: (event) ->
     @setState barLength: event.target.value
 
+
   changeSubLength: (event) ->
     @setState subLength: event.target.value
+
+  update: ->
+
+    destinationURL = 'http://localhost:'
+    destinationURL += PORT
+    destinationURL += '/api/update/'
+
+    submission = 
+      projectName: @state.project.name
+      project:     JSON.stringify @state.project, null, 2
+
+    $.post destinationURL, submission
+      .done (data) =>
+        console.log data.message
+
+
+  init: ->
+
+    destinationURL = 'http://localhost:'
+    destinationURL += PORT
+    destinationURL += '/api/init/'
+
+    submission = 
+      projectName: @state.project.name
+      project:     JSON.stringify @state.project, null, 2
+
+    $.post destinationURL, submission
+      .done (data) =>
+        console.log data.message
+
 
   render: ->
     div {},
@@ -113,14 +156,16 @@ WorkSpace = React.createClass
           input
             className: 'submit'
             type:      'submit'
-            value:     'build'
+            value:     'init'
+            onClick:   @init
         
         div {className: 'column'},
           
           input
             className: 'submit'
             type:      'submit'
-            value:     'save'
+            value:     'update'
+            onClick:   @update
 
         div {className: 'column'},
           
@@ -170,7 +215,6 @@ WorkSpace = React.createClass
             onChange:  @changeSubLength
 
 
-
       # Dimensions
 
 
@@ -201,7 +245,6 @@ WorkSpace = React.createClass
             @state.dimensions[@state.currentDimension]
 
         _.map @state.ensemble, (voice, voiceIndex) =>
-
           div {className: 'column half'},
 
             p
