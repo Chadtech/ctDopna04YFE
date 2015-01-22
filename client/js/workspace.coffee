@@ -25,7 +25,7 @@ formatNoteIndex = (noteIndex, barLength) ->
     numberOfBar = 'X'
 
   formattedNoteIndex = '.' + numberInBar
-  formattedNoteIndex = zeroPadder(numberOfBar, 7) + formattedNoteIndex
+  formattedNoteIndex = zeroPadder(numberOfBar, 5) + formattedNoteIndex
   formattedNoteIndex
 
 
@@ -45,6 +45,7 @@ WorkSpace = React.createClass
     currentPart:      0
     barLength:        '8'
     subLength:        '4'
+    indicesOrTempi:   true
 
 
   changeCurrentDimension: (event) ->
@@ -62,10 +63,10 @@ WorkSpace = React.createClass
     for voice in @state.score
       voice.splice spotToAddTo, 0, _.clone emptyNote, true
 
-    @state.time.splice spotToAddTo, 0, 1
+    @state.time.splice spotToAddTo, 0, '1'
 
     @setState score: @state.score
-
+    @setState time: @state.time
 
   removeNoteAt: (event) ->
     spotToRemoveFrom = event.target.getAttribute 'data-index'
@@ -73,7 +74,10 @@ WorkSpace = React.createClass
     for voice in @state.score
       voice.splice spotToRemoveFrom, 1
 
+    @state.time.splice spotToRemoveFrom, 1
+
     @setState score: @state.score
+    @setState time: @state.time
 
 
   barHighLight: (beatIndex) ->
@@ -106,6 +110,26 @@ WorkSpace = React.createClass
 
   changeSubLength: (event) ->
     @setState subLength: event.target.value
+
+
+  indicesTempiSwap: ->
+    @setState indicesOrTempi: not @state.indicesOrTempi
+
+
+  changeTime: (event) ->
+    timeIndex = event.target.getAttribute 'data-index'
+    @state.time[timeIndex] = event.target.value
+    @setState time: @state.time
+
+
+  productOfAllPriorTempi: (timeLimit) ->
+    rate = 1
+    timeIndex = 0
+    while timeIndex <= timeLimit
+      rate *= parseFloat @state.time[timeIndex]
+      timeIndex++
+    rate
+
 
   update: ->
 
@@ -214,6 +238,14 @@ WorkSpace = React.createClass
             value:     @state.subLength
             onChange:  @changeSubLength
 
+        div {className: 'column'},
+
+          input
+            className: 'submit'
+            type:      'submit'
+            value:     'indices/tempi'
+            onClick:   @indicesTempiSwap
+
 
       # Dimensions
 
@@ -254,11 +286,28 @@ WorkSpace = React.createClass
 
       _.map @state.score[0], (note, noteIndex) =>
         div {className: 'row'},
-          div {className: 'column'},
+          div {className: 'column half'},
 
             p
               className: 'point'
-              formatNoteIndex noteIndex, @state.barLength
+              @productOfAllPriorTempi noteIndex
+
+          div {className: 'column half'},
+            if @state.indicesOrTempi
+
+              p
+                className: 'point'
+                formatNoteIndex noteIndex, @state.barLength
+
+            else
+
+              input
+                className:    'input half'
+                value:        @state.time[noteIndex]
+                'data-index': noteIndex
+                onChange:     @changeTime
+
+
 
           _.map @state.score, (voice, voiceIndex) =>
             div {className: 'column half'},

@@ -122,7 +122,7 @@ NewPiece = React.createClass
 
   createNewProject: ->
     firstPart = 
-      time: [1]
+      time: ['1']
       score: _.map @state.ensemble, (voice) => 
         singleNote = {}
         for dimension in @state.dimensions
