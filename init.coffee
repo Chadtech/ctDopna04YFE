@@ -1,5 +1,19 @@
 fs = require 'fs'
+Nt = require './Nt/build/release/NtCpp'
+Dopna = require './jsonToDopna'
 
-module.exports = (projectName, projectAsString) ->
+module.exports = (data) ->
+  projectName = data.name
+
   pathToJSON = projectName + '/' + projectName + '.json'
-  fs.writeFileSync pathToJSON, projectAsString
+  fs.writeFileSync pathToJSON, data.project
+
+  project = JSON.parse data.project
+
+  Dopna project
+
+  # start = Date.now()
+  # Nt.saw 'DOPESAWDOPE.wav', 800, 8, 88200
+  # end = Date.now()
+
+  # console.log 'DUR : ', end - start

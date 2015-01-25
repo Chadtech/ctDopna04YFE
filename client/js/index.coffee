@@ -32,7 +32,9 @@ IndexClass = React.createClass
             Title()
 
           if @state.projectSet
-            WorkSpace project: @state.project
+            WorkSpace 
+              project:     @state.project
+              currentPart: 0
 
           else
             div {},

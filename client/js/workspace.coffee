@@ -36,8 +36,8 @@ WorkSpace = React.createClass
     project:    @props.project
 
     dimensions: @props.project.dimensions
-    score:      @props.project.parts[0].score
-    time:       @props.project.parts[0].time
+    score:      @props.project.parts[@props.currentPart].score
+    time:       @props.project.parts[@props.currentPart].time
     ensemble:   @props.project.ensemble
 
     currentDimension: 0
@@ -129,7 +129,7 @@ WorkSpace = React.createClass
     while timeIndex <= timeLimit
       rate *= parseFloat @state.time[timeIndex]
       timeIndex++
-    rate
+    (rate + '')
 
 
   update: ->
@@ -156,6 +156,7 @@ WorkSpace = React.createClass
     submission = 
       projectName: @state.project.name
       project:     JSON.stringify @state.project, null, 2
+      currentPart: @state.currentPart
 
     $.post destinationURL, submission
       .done (data) =>

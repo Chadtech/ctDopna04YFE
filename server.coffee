@@ -62,8 +62,14 @@ router.route '/init'
   .post (request, response, next) ->
 
     projectName = request.body.projectName
+    currentPart = request.body.currentPart
 
-    init(projectName, request.body.project)
+    data =
+      name:         projectName
+      project:      request.body.project
+      currentPart:  currentPart
+
+    init(data)
 
     response.json {message: 'worked'}
 
