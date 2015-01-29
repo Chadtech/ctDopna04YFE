@@ -12,6 +12,8 @@ module.exports = (data) ->
 
   Dopna project
 
+  Nt.dopna 'firs2.dopna'
+
   # start = Date.now()
   # Nt.saw 'DOPESAWDOPE.wav', 800, 8, 88200
   # end = Date.now()
