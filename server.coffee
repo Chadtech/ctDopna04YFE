@@ -49,12 +49,12 @@ router.route '/open'
 router.route '/update'
   .post (request, response, next) ->
 
-    # projectName = request.body.projectName
+    projectName = request.body.projectName
 
-    # if not fs.existsSync projectName
-    #   fs.mkdirSync projectName
-    # pathToJSON = projectName + '/' + projectName + '.json'
-    # fs.writeFileSync pathToJSON, request.body.project
+    if not fs.existsSync projectName
+      fs.mkdirSync projectName
+    pathToJSON = projectName + '/' + projectName + '.json'
+    fs.writeFileSync pathToJSON, request.body.project
 
     response.json {message: 'worked'}
 

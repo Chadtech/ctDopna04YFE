@@ -255,9 +255,7 @@ NAN_METHOD(returnDopna){
   int pieceDurationInBeats = pieceDuration0 * 256;
   pieceDurationInBeats += pieceDuration1;
 
-  int timesData [pieceDurationInBeats * 2];
   int times [pieceDurationInBeats];
-
   int thisBeatTempo [2];
 
   datumIndex = 0;
@@ -270,7 +268,43 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
+  float score [ensembleSize][pieceDurationInBeats][numberOfDimensions + 1];
+  int beatIndex = 0;
+  while (beatIndex < pieceDurationInBeats){
+    int ensembleIndex = 0;
+    while (ensembleIndex < ensembleSize){
+      int existsOrNot = dopnaFile.get();
+      score[ensembleIndex][beatIndex][0] = (float) existsOrNot;
+      int  dimensionIndex = 0;
+      while (dimensionIndex < numberOfDimensions){
+        char thisDimension [8];
+        int dimensionCharIndex = 0;
+        while (dimensionCharIndex < 8){
+          thisDimension[dimensionCharIndex] = dopnaFile.get();
+          dimensionCharIndex++;
+        }
+        thisDimension[dimensionCharIndex] = '\0';
+        score[ensembleIndex][beatIndex][dimensionIndex + 1] = atof(thisDimension);
+        dimensionIndex++;
+      }
+      ensembleIndex++;
+    }
+    beatIndex++;
+  }
 
+  long pieceDurationInSamples = 0;
+  int timeIndex = 0;
+  while (timeIndex <  pieceDurationInBeats){
+    pieceDurationInSamples += times[timeIndex];
+    timeIndex++;
+  }
+
+  short piece [pieceDurationInSamples];
+  long pieceIndex = 0;
+  while (pieceIndex < pieceDurationInSamples){
+    piece[pieceIndex] = 0;
+    pieceIndex++;
+  }
 
   //NanReturnValue(ntVersion1);
   NanReturnUndefined();
