@@ -9,6 +9,7 @@
 
 #include "./generate/sine.h"
 #include "./generate/saw.h"
+#include "./generate/sample.h"
 
 #include "./wavWrite.h"
 
@@ -120,7 +121,7 @@ NAN_METHOD(returnDopna){
     placeholderIndex++;
   }
 
-  // Get Left and Right Convolve
+  // Get Left and Right Convolve file name data
   char leftConvolveData [13];
   char rightConvolveData [13];
   datumIndex = 0;
@@ -155,6 +156,8 @@ NAN_METHOD(returnDopna){
     }
     datumIndex++;
   }
+
+  // Get left and right convolve file names (sub strings of the file name data)
   char leftConvolveName [leftConvolveNameLength + 1];
   char rightConvolveName [rightConvolveNameLength + 1];
   datumIndex = 0;
@@ -172,11 +175,9 @@ NAN_METHOD(returnDopna){
   }
   rightConvolveName[rightConvolveNameLength] = '\0';
 
-
-
+  // Get the convolve files
   std::ifstream leftConvolveFile;
   leftConvolveFile.open(leftConvolveName, std::ifstream::in);
-
   leftConvolveFile.seekg(0, leftConvolveFile.end);
   int lengthL = leftConvolveFile.tellg();
   leftConvolveFile.seekg(0, leftConvolveFile.beg);
@@ -246,9 +247,7 @@ NAN_METHOD(returnDopna){
   }
   rightConvolveFile.close();
 
-  // writeWAVData( "REBATHROOML.wav", leftConvolve, audioDataLengthL * 2, 44100, 1);
-  // writeWAVData( "REBATHROOMR.wav", rightConvolve, audioDataLengthR * 2, 44100, 1);
-
+  // Get the timing
   int pieceDuration0 = dopnaFile.get();
   int pieceDuration1 = dopnaFile.get();
 
@@ -268,14 +267,17 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
+  // Get the score
   float score [ensembleSize][pieceDurationInBeats][numberOfDimensions + 1];
-  int beatIndex = 0;
-  while (beatIndex < pieceDurationInBeats){
-    int ensembleIndex = 0;
-    while (ensembleIndex < ensembleSize){
+  
+  int ensembleIndex = 0;
+  while (ensembleIndex < ensembleSize){
+    int beatIndex = 0;
+    while (beatIndex < pieceDurationInBeats){
       int existsOrNot = dopnaFile.get();
       score[ensembleIndex][beatIndex][0] = (float) existsOrNot;
-      int  dimensionIndex = 0;
+
+      int dimensionIndex = 0;
       while (dimensionIndex < numberOfDimensions){
         char thisDimension [8];
         int dimensionCharIndex = 0;
@@ -283,14 +285,48 @@ NAN_METHOD(returnDopna){
           thisDimension[dimensionCharIndex] = dopnaFile.get();
           dimensionCharIndex++;
         }
+
         thisDimension[dimensionCharIndex] = '\0';
+        std::cout << "B " << thisDimension << " \n";
+        std::cout << "C " << atof(thisDimension) << " \n";
         score[ensembleIndex][beatIndex][dimensionIndex + 1] = atof(thisDimension);
         dimensionIndex++;
       }
-      ensembleIndex++;
+      beatIndex++;
     }
-    beatIndex++;
+    ensembleIndex++;
   }
+
+  //int beatIndex = 0;
+  // while (beatIndex < pieceDurationInBeats){
+  //   int ensembleIndex = 0;
+
+  //   while (ensembleIndex < ensembleSize){
+  //     int existsOrNot = dopnaFile.get();
+  //     score[ensembleIndex][beatIndex][0] = (float) existsOrNot;
+  //     int  dimensionIndex = 0;
+
+  //     while (dimensionIndex < numberOfDimensions){
+  //       char thisDimension [8];
+  //       int dimensionCharIndex = 0;
+
+  //       while (dimensionCharIndex < 8){
+  //         thisDimension[dimensionCharIndex] = dopnaFile.get();
+  //         dimensionCharIndex++;
+  //       }
+  //       thisDimension[dimensionCharIndex] = '\0';
+  //       std::cout << "7 " << thisDimension << "\n";
+  //        score[ensembleIndex][beatIndex][dimensionIndex + 1] = atof(thisDimension);
+  //       dimensionIndex++;
+
+  //     }
+  //     ensembleIndex++;
+
+  //   }
+  //   std::cout << "6 " << ensembleIndex << "\n";
+  //   beatIndex++;
+
+  // }
 
   long pieceDurationInSamples = 0;
   int timeIndex = 0;
@@ -305,6 +341,128 @@ NAN_METHOD(returnDopna){
     piece[pieceIndex] = 0;
     pieceIndex++;
   }
+
+  // Sort through the notes
+  ensembleIndex = 0;
+  while (ensembleIndex < ensembleSize){
+    if (ensembleTypes[ensembleIndex][0] == 's'){
+      if (ensembleTypes[ensembleIndex][1] == 'i'){
+        if (ensembleTypes[ensembleIndex][2] == 'n'){
+          if (ensembleTypes[ensembleIndex][3] == 'e'){
+            //std::cout << "IS SINE!!!" << "\n";
+
+            int indexOfSustain;
+            int indexOfFrequency;
+
+            int dimensionIndex = 0;
+            while (dimensionIndex < numberOfDimensions){
+
+              if (dimensions[dimensionIndex][0] == '0'){
+                if (dimensions[dimensionIndex][1] == '0'){
+                  if (dimensions[dimensionIndex][2] == '0'){
+                    if (dimensions[dimensionIndex][3] == '0'){
+                      if (dimensions[dimensionIndex][4] == '0'){
+                        if (dimensions[dimensionIndex][5] == 's'){
+                          if (dimensions[dimensionIndex][6] == 'u'){
+                            if (dimensions[dimensionIndex][7] == 's'){
+                              if (dimensions[dimensionIndex][8] == 't'){
+                                if (dimensions[dimensionIndex][9] == 'a'){
+                                  if (dimensions[dimensionIndex][10] == 'i'){
+                                    if (dimensions[dimensionIndex][11] == 'n'){
+                                      indexOfSustain = dimensionIndex + 1;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              if (dimensions[dimensionIndex][0] == '0'){
+                if (dimensions[dimensionIndex][1] == '0'){
+                  if (dimensions[dimensionIndex][2] == '0'){
+                    if (dimensions[dimensionIndex][3] == '0'){
+                      if (dimensions[dimensionIndex][4] == '0'){
+                        if (dimensions[dimensionIndex][5] == '0'){
+                          if (dimensions[dimensionIndex][6] == '0'){
+                            if (dimensions[dimensionIndex][7] == '0'){
+                              if (dimensions[dimensionIndex][8] == 't'){
+                                if (dimensions[dimensionIndex][9] == 'o'){
+                                  if (dimensions[dimensionIndex][10] == 'n'){
+                                    if (dimensions[dimensionIndex][11] == 'e'){
+                                      indexOfFrequency = dimensionIndex + 1;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              dimensionIndex++;
+            }
+
+            int pieceIndex = 0;
+            long timeAtThisNote = 0;
+            while (pieceIndex < pieceDurationInBeats){
+              if (score[ensembleIndex][pieceIndex][0] == 1){
+
+                int sustain = score[ensembleIndex][pieceIndex][indexOfSustain];
+                float frequency = score[ensembleIndex][pieceIndex][indexOfFrequency];
+
+                std::cout << "9 " << sustain << " " << frequency << "\n";
+ 
+                short * audio = new short[ (int) score[ensembleIndex][pieceIndex][1] ];
+                int confirmation = sine(sustain, frequency, audio);
+
+                int sampleIndex = 0;
+                while (sampleIndex < sustain){
+                  piece[sampleIndex + timeAtThisNote] += audio[sampleIndex];
+                  sampleIndex++;
+                }
+
+              }
+              std::cout << "TIME AT THIS NOTE " << timeAtThisNote << "\n";
+              timeAtThisNote += times[pieceIndex]; 
+              pieceIndex++;
+            }
+          }
+        }
+      }
+    }
+
+    if (ensembleTypes[ensembleIndex][0] == 's'){
+      if (ensembleTypes[ensembleIndex][1] == 'a'){
+        if (ensembleTypes[ensembleIndex][2] == 'm'){
+          if (ensembleTypes[ensembleIndex][3] == 'p'){
+            //std::cout << "IS SAMP!!!" << "\n";
+
+            int pieceIndex = 0;
+            while (pieceIndex < pieceDurationInBeats){
+              // if (score[ensembleIndex][pieceIndex][0] == 1){
+              //   short * audio = new short[(int) score[ensembleIndex][pieceIndex][1]];
+              //   confirmation = sine(score[ensembleIndex][pieceIndex], audio);
+              // }
+              pieceIndex++;
+            }
+          }
+        }
+      }
+    }
+    ensembleIndex++;
+  }
+
+  writeWAVData( "piece.wav", piece, pieceDurationInSamples * 2, 44100, 1 );
 
   //NanReturnValue(ntVersion1);
   NanReturnUndefined();
