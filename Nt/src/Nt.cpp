@@ -11,6 +11,8 @@
 #include "./generate/saw.h"
 #include "./generate/sample.h"
 
+#include "./effect/ramp.h"
+
 #include "./wavWrite.h"
 
 using namespace v8;
@@ -287,8 +289,6 @@ NAN_METHOD(returnDopna){
         }
 
         thisDimension[dimensionCharIndex] = '\0';
-        std::cout << "B " << thisDimension << " \n";
-        std::cout << "C " << atof(thisDimension) << " \n";
         score[ensembleIndex][beatIndex][dimensionIndex + 1] = atof(thisDimension);
         dimensionIndex++;
       }
@@ -297,36 +297,6 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
-  //int beatIndex = 0;
-  // while (beatIndex < pieceDurationInBeats){
-  //   int ensembleIndex = 0;
-
-  //   while (ensembleIndex < ensembleSize){
-  //     int existsOrNot = dopnaFile.get();
-  //     score[ensembleIndex][beatIndex][0] = (float) existsOrNot;
-  //     int  dimensionIndex = 0;
-
-  //     while (dimensionIndex < numberOfDimensions){
-  //       char thisDimension [8];
-  //       int dimensionCharIndex = 0;
-
-  //       while (dimensionCharIndex < 8){
-  //         thisDimension[dimensionCharIndex] = dopnaFile.get();
-  //         dimensionCharIndex++;
-  //       }
-  //       thisDimension[dimensionCharIndex] = '\0';
-  //       std::cout << "7 " << thisDimension << "\n";
-  //        score[ensembleIndex][beatIndex][dimensionIndex + 1] = atof(thisDimension);
-  //       dimensionIndex++;
-
-  //     }
-  //     ensembleIndex++;
-
-  //   }
-  //   std::cout << "6 " << ensembleIndex << "\n";
-  //   beatIndex++;
-
-  // }
 
   long pieceDurationInSamples = 0;
   int timeIndex = 0;
@@ -419,11 +389,10 @@ NAN_METHOD(returnDopna){
 
                 int sustain = score[ensembleIndex][pieceIndex][indexOfSustain];
                 float frequency = score[ensembleIndex][pieceIndex][indexOfFrequency];
-
-                std::cout << "9 " << sustain << " " << frequency << "\n";
  
                 short * audio = new short[ (int) score[ensembleIndex][pieceIndex][1] ];
                 int confirmation = sine(sustain, frequency, audio);
+                confirmation = ramp(sustain, audio);
 
                 int sampleIndex = 0;
                 while (sampleIndex < sustain){
@@ -432,7 +401,6 @@ NAN_METHOD(returnDopna){
                 }
 
               }
-              std::cout << "TIME AT THIS NOTE " << timeAtThisNote << "\n";
               timeAtThisNote += times[pieceIndex]; 
               pieceIndex++;
             }
