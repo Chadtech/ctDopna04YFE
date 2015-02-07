@@ -8,7 +8,6 @@ float sine (int sustain, float frequency, short * audio ){
   int outputIndex = 0;
   while (outputIndex < sustain){
     short sample = maxAmplitude * sin(pi * frequency * outputIndex * 2);
-    // std::cout << "A " << sample << " \n";
     *(audio + outputIndex) = sample;
     outputIndex++;
   }

@@ -10,12 +10,12 @@ module.exports = (data) ->
 
   project = JSON.parse data.project
 
-  Dopna project
+  fileName = projectName + '/' + projectName + '.dopna'
 
-  Nt.dopna 'firs2.dopna'
+  console.log 'A'
+  Dopna project, fileName
+  console.log 'B'
 
-  # start = Date.now()
-  # Nt.saw 'DOPESAWDOPE.wav', 800, 8, 88200
-  # end = Date.now()
-
-  # console.log 'DUR : ', end - start
+  saveFileName = projectName + '/' + projectName + '.wav'
+  
+  Nt.dopna fileName, saveFileName

@@ -21,9 +21,13 @@ using v8::String;
 NAN_METHOD(returnDopna){
   NanScope();
 
-  v8::String::Utf8Value param1(args[0]->ToString());
-  std::string fileName0 = std::string(*param1);
+  v8::String::Utf8Value param0(args[0]->ToString());
+  std::string fileName0 = std::string(*param0);
   const char * fileName = fileName0.c_str();
+
+  v8::String::Utf8Value param1(args[1]->ToString());
+  std::string fileName1 = std::string(*param1);
+  const char * saveFileName = fileName1.c_str();
 
   std::ifstream dopnaFile;
   dopnaFile.open(fileName, std::ifstream::in);
@@ -305,11 +309,78 @@ NAN_METHOD(returnDopna){
     timeIndex++;
   }
 
-  short piece [pieceDurationInSamples];
+  std::cout << "C " << pieceDurationInSamples << "\n";
+
+
+  short * piece;
+  piece = new short [pieceDurationInSamples];
+
   long pieceIndex = 0;
   while (pieceIndex < pieceDurationInSamples){
     piece[pieceIndex] = 0;
     pieceIndex++;
+  }
+
+
+  int indexOfSustain;
+  int indexOfFrequency;
+
+  int dimensionIndex = 0;
+  while (dimensionIndex < numberOfDimensions){
+
+    if (dimensions[dimensionIndex][0] == '0'){
+      if (dimensions[dimensionIndex][1] == '0'){
+        if (dimensions[dimensionIndex][2] == '0'){
+          if (dimensions[dimensionIndex][3] == '0'){
+            if (dimensions[dimensionIndex][4] == '0'){
+              if (dimensions[dimensionIndex][5] == 's'){
+                if (dimensions[dimensionIndex][6] == 'u'){
+                  if (dimensions[dimensionIndex][7] == 's'){
+                    if (dimensions[dimensionIndex][8] == 't'){
+                      if (dimensions[dimensionIndex][9] == 'a'){
+                        if (dimensions[dimensionIndex][10] == 'i'){
+                          if (dimensions[dimensionIndex][11] == 'n'){
+                            indexOfSustain = dimensionIndex + 1;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (dimensions[dimensionIndex][0] == '0'){
+      if (dimensions[dimensionIndex][1] == '0'){
+        if (dimensions[dimensionIndex][2] == '0'){
+          if (dimensions[dimensionIndex][3] == '0'){
+            if (dimensions[dimensionIndex][4] == '0'){
+              if (dimensions[dimensionIndex][5] == '0'){
+                if (dimensions[dimensionIndex][6] == '0'){
+                  if (dimensions[dimensionIndex][7] == '0'){
+                    if (dimensions[dimensionIndex][8] == 't'){
+                      if (dimensions[dimensionIndex][9] == 'o'){
+                        if (dimensions[dimensionIndex][10] == 'n'){
+                          if (dimensions[dimensionIndex][11] == 'e'){
+                            indexOfFrequency = dimensionIndex + 1;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    dimensionIndex++;
   }
 
   // Sort through the notes
@@ -321,66 +392,6 @@ NAN_METHOD(returnDopna){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
             //std::cout << "IS SINE!!!" << "\n";
 
-            int indexOfSustain;
-            int indexOfFrequency;
-
-            int dimensionIndex = 0;
-            while (dimensionIndex < numberOfDimensions){
-
-              if (dimensions[dimensionIndex][0] == '0'){
-                if (dimensions[dimensionIndex][1] == '0'){
-                  if (dimensions[dimensionIndex][2] == '0'){
-                    if (dimensions[dimensionIndex][3] == '0'){
-                      if (dimensions[dimensionIndex][4] == '0'){
-                        if (dimensions[dimensionIndex][5] == 's'){
-                          if (dimensions[dimensionIndex][6] == 'u'){
-                            if (dimensions[dimensionIndex][7] == 's'){
-                              if (dimensions[dimensionIndex][8] == 't'){
-                                if (dimensions[dimensionIndex][9] == 'a'){
-                                  if (dimensions[dimensionIndex][10] == 'i'){
-                                    if (dimensions[dimensionIndex][11] == 'n'){
-                                      indexOfSustain = dimensionIndex + 1;
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-
-              if (dimensions[dimensionIndex][0] == '0'){
-                if (dimensions[dimensionIndex][1] == '0'){
-                  if (dimensions[dimensionIndex][2] == '0'){
-                    if (dimensions[dimensionIndex][3] == '0'){
-                      if (dimensions[dimensionIndex][4] == '0'){
-                        if (dimensions[dimensionIndex][5] == '0'){
-                          if (dimensions[dimensionIndex][6] == '0'){
-                            if (dimensions[dimensionIndex][7] == '0'){
-                              if (dimensions[dimensionIndex][8] == 't'){
-                                if (dimensions[dimensionIndex][9] == 'o'){
-                                  if (dimensions[dimensionIndex][10] == 'n'){
-                                    if (dimensions[dimensionIndex][11] == 'e'){
-                                      indexOfFrequency = dimensionIndex + 1;
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-
-              dimensionIndex++;
-            }
 
             int pieceIndex = 0;
             long timeAtThisNote = 0;
@@ -400,6 +411,7 @@ NAN_METHOD(returnDopna){
                   sampleIndex++;
                 }
 
+                delete[] audio;
               }
               timeAtThisNote += times[pieceIndex]; 
               pieceIndex++;
@@ -430,7 +442,9 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
-  writeWAVData( "piece.wav", piece, pieceDurationInSamples * 2, 44100, 1 );
+  writeWAVData( saveFileName, piece, pieceDurationInSamples * 2, 44100, 1 );
+
+  delete piece;
 
   //NanReturnValue(ntVersion1);
   NanReturnUndefined();

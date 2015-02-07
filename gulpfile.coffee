@@ -1,13 +1,14 @@
-gulp = require 'gulp'
-concat = require 'gulp-concat'
-stylus = require 'gulp-stylus'
-jade = require 'gulp-jade'
-reload = require 'gulp-livereload'
-awatch = require 'gulp-autowatch'
-source = require 'vinyl-source-stream'
-buffer = require 'vinyl-buffer'
-coffeeify = require 'coffeeify'
-browserify = require 'browserify'
+gulp        = require 'gulp'
+concat      = require 'gulp-concat'
+stylus      = require 'gulp-stylus'
+jade        = require 'gulp-jade'
+reload      = require 'gulp-livereload'
+awatch      = require 'gulp-autowatch'
+source      = require 'vinyl-source-stream'
+buffer      = require 'vinyl-buffer'
+coffeeify   = require 'coffeeify'
+browserify  = require 'browserify'
+
 
 paths =
   public: './public'
@@ -15,8 +16,10 @@ paths =
   jade:   './client/html/*.jade'
   stylus: './client/css/*.styl'
 
+
 gulp.task 'server', (cb) ->
   require './server'
+
 
 gulp.task 'coffee', ->
   bCache = {}
@@ -32,17 +35,20 @@ gulp.task 'coffee', ->
   .pipe gulp.dest paths.public
   .pipe reload()
 
+
 gulp.task 'jade', ->
   gulp.src paths.jade
   .pipe jade()
   .pipe gulp.dest paths.public
   .pipe reload()
 
+
 gulp.task 'stylus', ->
   gulp.src paths.stylus
   .pipe stylus()
   .pipe gulp.dest paths.public
   .pipe reload()
+
 
 gulp.task 'watch', ->
   awatch gulp,
