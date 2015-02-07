@@ -132,6 +132,20 @@ WorkSpace = React.createClass
     (rate + '')
 
 
+  currentBarChange: (event) ->
+    @setState currentBar: event.target.value
+
+
+  addOneCurrentBar: ->
+    console.log 'CURRENT BAR IS ', @state.currentBar
+    @setState currentBar: (@state.currentBar + 1)
+
+
+  subtractOneCurrentBar: ->
+    if @state.currentBar isnt 0
+      @setState currentBar: (@state.currentBar - 1)
+
+
   update: ->
 
     destinationURL = 'http://localhost:'
@@ -200,8 +214,17 @@ WorkSpace = React.createClass
             type:      'submit'
             value:     'play'
 
+
+      # Display 
+
+
       div {className: 'row'},
-        div {className: 'column'}
+        div {className: 'column'},
+
+          p
+            className: 'point'
+            'display'
+
         div {className: 'column half'},
           
           p
@@ -249,6 +272,38 @@ WorkSpace = React.createClass
             onClick:   @indicesTempiSwap
 
 
+      div {className: 'row'},
+        div {className: 'column'}
+        div {className: 'column'},
+
+          p
+            className: 'point'
+            'display bar'
+
+        div {className: 'column half'},
+
+          input
+            className: 'submit half'
+            type:      'submit'
+            value:     '<'
+            onClick:   @subtractOneCurrentBar
+
+        div {className: 'column'},
+
+          input
+            className: 'input'
+            value:     @state.currentBar
+            onChange:  @currentBarChange
+
+        div {className: 'column half'},
+
+          input
+            className: 'submit half'
+            type:      'submit'
+            value:     '>'
+            onClick:   @addOneCurrentBar
+
+
       # Dimensions
 
 
@@ -286,7 +341,10 @@ WorkSpace = React.createClass
               voice.name
 
 
-      _.map @state.score[0], (note, noteIndex) =>
+      _.map @state.score[0].slice(@state.currentBar * 6, (@state.currentBar + 6 ) * @state.barLength), (note, noteIndex) =>
+        console.log 'NOTE INDEX IS ', noteIndex
+        noteIndex += (6 * @state.currentBar)
+
         div {className: 'row'},
           div {className: 'column half'},
 
