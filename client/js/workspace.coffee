@@ -8,6 +8,7 @@ $      = require 'jquery'
 
 PORT = 1776
 
+numberOfDisplayBars = 6
 
 zeroPadder = (number, numberOfZerosToFill) ->
   numberAsString = number + ''
@@ -27,6 +28,7 @@ formatNoteIndex = (noteIndex, barLength) ->
   formattedNoteIndex = '.' + numberInBar
   formattedNoteIndex = zeroPadder(numberOfBar, 5) + formattedNoteIndex
   formattedNoteIndex
+
 
 
 WorkSpace = React.createClass
@@ -95,6 +97,12 @@ WorkSpace = React.createClass
       ''
 
 
+  sliceOfScore: ->
+    @state.score[0].slice @state.currentBar * @state.barLength,
+      (@state.currentBar + numberOfDisplayBars) * @state.barLength
+
+
+
   noteUpdate: (event) ->
     voiceIndex       = event.target.getAttribute 'data-voice'
     noteIndex        = event.target.getAttribute 'data-note'
@@ -137,7 +145,6 @@ WorkSpace = React.createClass
 
 
   addOneCurrentBar: ->
-    console.log 'CURRENT BAR IS ', @state.currentBar
     @setState currentBar: (@state.currentBar + 1)
 
 
@@ -341,9 +348,8 @@ WorkSpace = React.createClass
               voice.name
 
 
-      _.map @state.score[0].slice(@state.currentBar * 6, (@state.currentBar + 6 ) * @state.barLength), (note, noteIndex) =>
-        console.log 'NOTE INDEX IS ', noteIndex
-        noteIndex += (6 * @state.currentBar)
+      _.map  @sliceOfScore(), (note, noteIndex) =>
+        noteIndex += (@state.barLength * @state.currentBar)
 
         div {className: 'row'},
           div {className: 'column half'},
