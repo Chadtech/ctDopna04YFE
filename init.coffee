@@ -1,8 +1,9 @@
-fs = require 'fs'
-Nt = require './Nt/build/release/NtCpp'
+fs    = require 'fs'
+Nt    = require './Nt/build/release/NtCpp'
 Dopna = require './jsonToDopna'
 
 module.exports = (data) ->
+  
   projectName = data.name
 
   pathToJSON = projectName + '/' + projectName + '.json'

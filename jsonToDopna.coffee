@@ -15,7 +15,11 @@ module.exports = (dopnaAsJson, fileName) ->
   header = _.map header, (char) ->
     char.charCodeAt()
 
-  content.push header
+  # content.push header
+
+  for datum in header
+    content.push datum
+
   content.push dopnaAsJson.scale.length
   # Convert each scale element into a string
   scale = _.map dopnaAsJson.scale, (interval) =>
@@ -29,15 +33,27 @@ module.exports = (dopnaAsJson, fileName) ->
   scale = _.reduce scale, (aggregate, interval) =>
     aggregate.concat interval
 
-  content.push scale
+  # content.push scale
+
+  console.log 'SCALE IS', scale
+
+  for datum in scale
+    content.push datum
 
   content.push dopnaAsJson.ensemble.length // 256
   content.push dopnaAsJson.ensemble.length
 
+  console.log 'A.0.0'
+
+
   for voice in dopnaAsJson.ensemble
     type = minimumZeros voice.type, 4
-    content.push _.map (type.substring 0, 4), (char) ->
-      char.charCodeAt()
+    # content.push _.map (type.substring 0, 4), (char) ->
+    #   char.charCodeAt()
+
+    _.forEach (type.substring 0, 4), (char) ->
+      content.push char.charCodeAt()
+
     xPos = parseInt voice.xPos
     yPos = parseInt voice.yPos
 
@@ -51,15 +67,26 @@ module.exports = (dopnaAsJson, fileName) ->
     content.push yPos // 256
     content.push yPos % 256
 
+  console.log 'A.0.1'
+
   content.push dopnaAsJson.dimensions.length
   for dimension in dopnaAsJson.dimensions
-    content.push _.map (minimumZeros dimension, 12), (char) ->
-      char.charCodeAt()
+    # content.push _.map (minimumZeros dimension, 12), (char) ->
+    #   char.charCodeAt()
 
-  content.push _.map (minimumZeros dopnaAsJson.leftConvolvement, 12), (char) ->
-    char.charCodeAt()
-  content.push _.map (minimumZeros dopnaAsJson.rightConvolvement, 12), (char) ->
-    char.charCodeAt()
+    _.forEach (minimumZeros dimension, 12), (char) ->
+      content.push char.charCodeAt()
+
+  # content.push _.map (minimumZeros dopnaAsJson.leftConvolvement, 12), (char) ->
+  #   char.charCodeAt()
+  # content.push _.map (minimumZeros dopnaAsJson.rightConvolvement, 12), (char) ->
+  #   char.charCodeAt()
+
+  _.forEach (minimumZeros dopnaAsJson.leftConvolvement, 12), (char) ->
+    content.push char.charCodeAt()
+
+  _.forEach (minimumZeros dopnaAsJson.rightConvolvement, 12), (char) ->
+    content.push char.charCodeAt()
 
   # Needs to become dopnaAsJson.time.length as I change the json structure
   content.push (dopnaAsJson.parts[0].time.length // 256)
@@ -71,10 +98,15 @@ module.exports = (dopnaAsJson, fileName) ->
     initialTime = initialTime // 1
     initialTime
 
+
+  console.log 'A.0.2'
+
   # The push the duration of every beat
   for beat in times
     content.push beat // 256
     content.push beat % 256
+
+  console.log 'A.0.3'
 
   # For every voice in the score
   for voice in dopnaAsJson.parts[0].score
@@ -102,20 +134,36 @@ module.exports = (dopnaAsJson, fileName) ->
             frequency     = tone * tonicAtOctave
             thisDimension = _.map (minimumZeros frequency + '', 8), (char) ->
               char.charCodeAt()
-            content.push thisDimension
+
+            #content.push thisDimension
+
+            for datum in thisDimension
+              content.push datum
+
           else
             thisDimension = _.map (minimumZeros defaultValues[key], 8), (char) ->
               char.charCodeAt()
-            content.push thisDimension
+
+            #content.push thisDimension
+
+            for datum in thisDimension
+              content.push datum
+
       else
         content.push 0
         for key in _.keys defaultValues
           thisDimension = _.map (minimumZeros '', 8), (char) ->
             char.charCodeAt()
-          content.push thisDimension
 
-  content = _.reduce content, (aggregate, chunk) =>
-    aggregate.concat chunk
+          #content.push thisDimension
+
+          for datum in thisDimension
+            content.push datum
+
+  console.log 'A.0.4'
+
+  # content = _.reduce content, (aggregate, chunk) =>
+  #   aggregate.concat chunk
 
   console.log 'A.1'
 
