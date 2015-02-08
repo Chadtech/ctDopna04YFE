@@ -55,21 +55,17 @@ WorkSpace = React.createClass
 
 
   addNoteAt: (event) ->
-    again = 0
-    while again < 1000
-      spotToAddTo = event.target.getAttribute 'data-index'
-      spotToAddTo++
-      emptyNote = {}
+    spotToAddTo = event.target.getAttribute 'data-index'
+    spotToAddTo++
+    emptyNote = {}
 
-      for dimension in @state.dimensions
-        emptyNote[dimension] = ''
+    for dimension in @state.dimensions
+      emptyNote[dimension] = ''
 
-      for voice in @state.score
-        voice.splice spotToAddTo, 0, _.clone emptyNote, true
+    for voice in @state.score
+      voice.splice spotToAddTo, 0, _.clone emptyNote, true
 
-      @state.time.splice spotToAddTo, 0, '1'
-
-      again++
+    @state.time.splice spotToAddTo, 0, '1'
 
     @setState score: @state.score
     @setState time: @state.time
@@ -172,11 +168,11 @@ WorkSpace = React.createClass
         console.log data.message
 
 
-  init: ->
+  build: ->
 
     destinationURL = 'http://localhost:'
     destinationURL += PORT
-    destinationURL += '/api/init/'
+    destinationURL += '/api/build/'
 
     submission = 
       projectName: @state.project.name
@@ -207,8 +203,8 @@ WorkSpace = React.createClass
           input
             className: 'submit'
             type:      'submit'
-            value:     'init'
-            onClick:   @init
+            value:     'build'
+            onClick:   @build
         
         div {className: 'column'},
           

@@ -12,6 +12,8 @@
 #include "./generate/sample.h"
 
 #include "./effect/ramp.h"
+#include "./effect/convolve.h"
+#include "./effect/volume.h"
 
 #include "./wavWrite.h"
 
@@ -20,6 +22,8 @@ using v8::String;
 
 NAN_METHOD(returnDopna){
   NanScope();
+
+  std::cout << "9 \n";
 
   v8::String::Utf8Value param0(args[0]->ToString());
   std::string fileName0 = std::string(*param0);
@@ -64,6 +68,7 @@ NAN_METHOD(returnDopna){
     placeholderIndex++;
   }
 
+  std::cout << "9.D \n";
 
   // Get the ensemble, and save the voice types
   // and the voice positions in their respective
@@ -127,6 +132,7 @@ NAN_METHOD(returnDopna){
     placeholderIndex++;
   }
 
+
   // Get Left and Right Convolve file name data
   char leftConvolveData [13];
   char rightConvolveData [13];
@@ -163,6 +169,7 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
+
   // Get left and right convolve file names (sub strings of the file name data)
   char leftConvolveName [leftConvolveNameLength + 1];
   char rightConvolveName [rightConvolveNameLength + 1];
@@ -196,9 +203,10 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
+
   datumIndex = 44;
-  int audioDataLengthL = (lengthL - 44) / 2;
-  short leftConvolve [audioDataLengthL];
+  int leftConvolveAudioLength = (lengthL - 44) / 2;
+  short leftConvolve [leftConvolveAudioLength];
   int audioDatumIndex = 0;
   int thisSampleDatum [2];
 
@@ -234,8 +242,8 @@ NAN_METHOD(returnDopna){
   }
 
   datumIndex = 44;
-  int audioDataLengthR = (lengthR - 44) / 2;
-  short rightConvolve [audioDataLengthR];
+  int rightConvolveAudioLength = (lengthR - 44) / 2;
+  short rightConvolve [rightConvolveAudioLength];
   audioDatumIndex = 0;
 
   while (datumIndex < lengthR){
@@ -301,6 +309,7 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
+  std::cout << "9.E \n";
 
   long pieceDurationInSamples = 0;
   int timeIndex = 0;
@@ -319,9 +328,11 @@ NAN_METHOD(returnDopna){
     pieceIndex++;
   }
 
+  std::cout << "9.F \n";
 
   int indexOfSustain;
   int indexOfFrequency;
+  int indexOfAmplitude;
 
   int dimensionIndex = 0;
   while (dimensionIndex < numberOfDimensions){
@@ -378,8 +389,36 @@ NAN_METHOD(returnDopna){
       }
     }
 
+    if (dimensions[dimensionIndex][0] == '0'){
+      if (dimensions[dimensionIndex][1] == '0'){
+        if (dimensions[dimensionIndex][2] == '0'){
+          if (dimensions[dimensionIndex][3] == 'a'){
+            if (dimensions[dimensionIndex][4] == 'm'){
+              if (dimensions[dimensionIndex][5] == 'p'){
+                if (dimensions[dimensionIndex][6] == 'l'){
+                  if (dimensions[dimensionIndex][7] == 'i'){
+                    if (dimensions[dimensionIndex][8] == 't'){
+                      if (dimensions[dimensionIndex][9] == 'u'){
+                        if (dimensions[dimensionIndex][10] == 'd'){
+                          if (dimensions[dimensionIndex][11] == 'e'){
+                            indexOfAmplitude = dimensionIndex + 1;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     dimensionIndex++;
   }
+
+  std::cout << "A.0 \n";
 
   // Sort through the notes
   ensembleIndex = 0;
@@ -388,7 +427,6 @@ NAN_METHOD(returnDopna){
       if (ensembleTypes[ensembleIndex][1] == 'i'){
         if (ensembleTypes[ensembleIndex][2] == 'n'){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
-            //std::cout << "IS SINE!!!" << "\n";
 
 
             int pieceIndex = 0;
@@ -396,21 +434,43 @@ NAN_METHOD(returnDopna){
             while (pieceIndex < pieceDurationInBeats){
               if (score[ensembleIndex][pieceIndex][0] == 1){
 
-                int sustain = score[ensembleIndex][pieceIndex][indexOfSustain];
-                float frequency = score[ensembleIndex][pieceIndex][indexOfFrequency];
- 
-                short * audio = new short[ (int) score[ensembleIndex][pieceIndex][1] ];
+                int sustain = score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ];
+                float frequency = score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ];
+                float amplitude = score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ];
+
+                int lengthOfNote = sustain + leftConvolveAudioLength;
+                short * audio = new short [ sustain ];
+                
                 int confirmation = sine(sustain, frequency, audio);
+                
                 confirmation = ramp(sustain, audio);
 
+                short * convolvedAudio = new short [ lengthOfNote ];
+
+                confirmation = convolve(
+                  0.015, 
+
+                  audio,
+                  sustain, 
+
+                  leftConvolve,
+                  leftConvolveAudioLength,
+
+                  convolvedAudio
+                );
+
+                confirmation = volume(amplitude, lengthOfNote, convolvedAudio);
+
                 int sampleIndex = 0;
-                while (sampleIndex < sustain){
-                  piece[sampleIndex + timeAtThisNote] += audio[sampleIndex];
+                while (sampleIndex < lengthOfNote){
+                  piece[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
                   sampleIndex++;
                 }
 
+                delete[] convolvedAudio;
                 delete[] audio;
               }
+
               timeAtThisNote += times[pieceIndex]; 
               pieceIndex++;
             }

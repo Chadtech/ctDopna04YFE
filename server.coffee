@@ -60,7 +60,24 @@ router.route '/update'
 
     response.json {message: 'worked'}
 
-router.route '/init'
+
+router.route '/build'
+  .post (request, response, next) ->
+
+    projectName = request.body.projectName
+    currentPart = request.body.currentPart
+
+    data =
+      name:         projectName
+      project:      request.body.project
+      currentPart:  currentPart
+
+    init(data)
+
+    response.json {message: 'worked'}
+
+
+router.route '/play'
   .post (request, response, next) ->
 
     projectName = request.body.projectName

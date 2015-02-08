@@ -8,11 +8,15 @@ $      = require 'jquery'
 PORT = 1776
 
 OpenPiece = React.createClass
+
+
   getInitialState: ->
     openName: ''
 
+
   changeOpenName: (event) ->
     @setState openName: event.target.value
+
 
   openProject: ->
 
@@ -28,6 +32,7 @@ OpenPiece = React.createClass
         if data.message is 'worked'
           @props.updateState true, JSON.parse data.project
         console.log data.message
+
 
   render: ->
     div {className: 'column triple'},
@@ -48,5 +53,6 @@ OpenPiece = React.createClass
               placeholder: '<name>'
               value:       @state.openName
               onChange:    @changeOpenName
+              
 
 module.exports = OpenPiece

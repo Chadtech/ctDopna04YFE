@@ -12,7 +12,9 @@ Release/obj.target/NtCpp/src/Nt.o: ../src/Nt.cpp \
   /Users/Chadtech/.node-gyp/0.10.29/src/node_buffer.h \
   /Users/Chadtech/.node-gyp/0.10.29/src/node_version.h \
   ../src/./generate/sine.h ../src/./generate/saw.h \
-  ../src/./generate/sample.h ../src/./effect/ramp.h ../src/./wavWrite.h
+  ../src/./generate/sample.h ../src/./effect/ramp.h \
+  ../src/./effect/convolve.h ../src/./effect/volume.h \
+  ../src/./wavWrite.h
 ../src/Nt.cpp:
 ../node_modules/nan/nan.h:
 /Users/Chadtech/.node-gyp/0.10.29/deps/uv/include/uv.h:
@@ -29,4 +31,6 @@ Release/obj.target/NtCpp/src/Nt.o: ../src/Nt.cpp \
 ../src/./generate/saw.h:
 ../src/./generate/sample.h:
 ../src/./effect/ramp.h:
+../src/./effect/convolve.h:
+../src/./effect/volume.h:
 ../src/./wavWrite.h:
