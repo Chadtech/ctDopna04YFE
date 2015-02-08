@@ -55,17 +55,21 @@ WorkSpace = React.createClass
 
 
   addNoteAt: (event) ->
-    spotToAddTo = event.target.getAttribute 'data-index'
-    spotToAddTo++
-    emptyNote = {}
+    again = 0
+    while again < 1000
+      spotToAddTo = event.target.getAttribute 'data-index'
+      spotToAddTo++
+      emptyNote = {}
 
-    for dimension in @state.dimensions
-      emptyNote[dimension] = ''
+      for dimension in @state.dimensions
+        emptyNote[dimension] = ''
 
-    for voice in @state.score
-      voice.splice spotToAddTo, 0, _.clone emptyNote, true
+      for voice in @state.score
+        voice.splice spotToAddTo, 0, _.clone emptyNote, true
 
-    @state.time.splice spotToAddTo, 0, '1'
+      @state.time.splice spotToAddTo, 0, '1'
+
+      again++
 
     @setState score: @state.score
     @setState time: @state.time

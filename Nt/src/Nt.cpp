@@ -309,8 +309,6 @@ NAN_METHOD(returnDopna){
     timeIndex++;
   }
 
-  std::cout << "C " << pieceDurationInSamples << "\n";
-
 
   short * piece;
   piece = new short [pieceDurationInSamples];

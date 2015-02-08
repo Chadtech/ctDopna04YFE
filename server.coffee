@@ -11,7 +11,7 @@ init        = require './init'
 
 app.use bodyParser.json()
 
-app.use bodyParser({limit: '5mb'})
+app.use bodyParser({limit: '50mb'})
 app.use bodyParser.urlencoded {extended: true}
 
 PORT = Number process.env.PORT or 1776
