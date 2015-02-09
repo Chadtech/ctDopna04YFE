@@ -3,12 +3,14 @@ _      = require 'lodash'
 $      = require 'jquery'
 
 
-{p, input, div} = React.DOM
+AudioContext = window.audioContext or window.webkitAudioContext
+audioContext = new AudioContext
 
 
-PORT = 1776
-
+{p, input, div}     = React.DOM
+PORT                = 1776
 numberOfDisplayBars = 6
+
 
 zeroPadder = (number, numberOfZerosToFill) ->
   numberAsString = number + ''
@@ -198,9 +200,49 @@ WorkSpace = React.createClass
 
     $.post destinationURL, submission
       .done (data) =>
-        console.log data
-        console.log data.message
-        console.log data.audioData
+        # console.log data
+        # console.log data.message
+        # console.log data.audioData
+
+        console.log 'A.0'
+        
+        numberOfSamples = data.audioData.length
+        audioBuffer     = audioContext.createBuffer 2, numberOfSamples, 44100
+
+        console.log 'A.1'
+        for channel in ([0,1])
+          console.log 'A.2'
+          audioBufferData = audioBuffer.getChannelData channel
+          sampleIndex = 0
+          while sampleIndex < numberOfSamples
+            audioBufferData[ sampleIndex ] = data.audioData[ sampleIndex ] / 32767
+            sampleIndex++
+
+        console.log 'A.3'
+
+        source        = audioContext.createBufferSource()
+        source.buffer = audioBuffer
+        
+        source.connect audioContext.destination
+        source.start()
+
+        console.log 'B'
+
+
+        # numberOfFrames = data.buffer[0].length
+        # audioBuffer = audioContext.createBuffer 2, numberOfFrames, 44100
+
+        # for channel in ([0,1])
+        #   audioBufferData = audioBuffer.getChannelData channel
+        #   frameIndex = 0
+        #   while frameIndex < numberOfFrames
+        #     audioBufferData[frameIndex] = data.buffer[channel][frameIndex]
+        #     frameIndex++
+
+        # source = audioContext.createBufferSource()
+        # source.buffer = audioBuffer
+        # source.connect audioContext.destination
+        # source.start()
 
 
   render: ->

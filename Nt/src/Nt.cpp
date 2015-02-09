@@ -24,8 +24,6 @@ NAN_METHOD(returnDopna){
   NanScope();
 
 
-  std::cout << "A.0 \n";
-
   v8::String::Utf8Value param0(args[0]->ToString());
   std::string fileName0 = std::string(*param0);
   const char * fileName = fileName0.c_str();
@@ -203,8 +201,6 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
-  std::cout << "A.0.1 \n";
-
   datumIndex = 44;
   int leftConvolveAudioLength = (lengthL - 44) / 2;
   short leftConvolve [leftConvolveAudioLength];
@@ -328,8 +324,6 @@ NAN_METHOD(returnDopna){
   }
 
 
-  std::cout << "A.1 \n";
-
   int indexOfSustain;
   int indexOfFrequency;
   int indexOfAmplitude;
@@ -418,7 +412,6 @@ NAN_METHOD(returnDopna){
     dimensionIndex++;
   }
 
-  std::cout << "A.2 \n";
 
   // Sort through the notes
   ensembleIndex = 0;
@@ -427,8 +420,6 @@ NAN_METHOD(returnDopna){
       if (ensembleTypes[ensembleIndex][1] == 'i'){
         if (ensembleTypes[ensembleIndex][2] == 'n'){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
-
-            std::cout << "A.3 " << pieceDurationInBeats << "\n";
 
             int pieceIndex = 0;
             long timeAtThisNote = 0;
@@ -506,7 +497,6 @@ NAN_METHOD(returnDopna){
 
   delete piece;
 
-  //NanReturnValue(ntVersion1);
   NanReturnUndefined();
 }
 

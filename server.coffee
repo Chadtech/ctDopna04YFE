@@ -5,7 +5,6 @@ http        = require 'http'
 {join}      = require 'path'
 bodyParser  = require 'body-parser'
 Nt          = require './NtYhS/noitech'
-#Nr = require './noideread'
 _           = require 'lodash'
 init        = require './init'
 
@@ -81,6 +80,8 @@ router.route '/build'
 router.route '/play'
   .post (request, response, next) ->
 
+    console.log '6'
+
     projectName = request.body.projectName
     currentPart = request.body.currentPart
 
@@ -89,14 +90,22 @@ router.route '/play'
       project:      request.body.project
       currentPart:  currentPart
 
-    init(data)
+    console.log '7'
+
+    #init(data)
+
+    console.log '8'
 
     pathToAudio =  projectName + '/'
     pathToAudio += projectName + '.wav'
 
+    console.log '9'
+
     responseObject = 
       message:    'worked'
       audioData:  (Nt.open 'stPuchL.wav')[0]
+
+    console.log '9.1'
 
     response.json responseObject
 
