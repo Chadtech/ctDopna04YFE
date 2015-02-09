@@ -4,6 +4,7 @@ app         = express()
 http        = require 'http'
 {join}      = require 'path'
 bodyParser  = require 'body-parser'
+Nt          = require './NtYhS/noitech'
 #Nr = require './noideread'
 _           = require 'lodash'
 init        = require './init'
@@ -90,7 +91,14 @@ router.route '/play'
 
     init(data)
 
-    response.json {message: 'worked'}
+    pathToAudio =  projectName + '/'
+    pathToAudio += projectName + '.wav'
+
+    responseObject = 
+      message:    'worked'
+      audioData:  (Nt.open 'stPuchL.wav')[0]
+
+    response.json responseObject
 
 
 

@@ -183,6 +183,25 @@ WorkSpace = React.createClass
       .done (data) =>
         console.log data.message
 
+  play: ->
+
+    console.log 'A'
+
+    destinationURL = 'http://localhost:'
+    destinationURL += PORT
+    destinationURL += '/api/play/'
+
+    submission = 
+      projectName: @state.project.name
+      project:     JSON.stringify @state.project, null, 2
+      currentPart: @state.currentPart
+
+    $.post destinationURL, submission
+      .done (data) =>
+        console.log data
+        console.log data.message
+        console.log data.audioData
+
 
   render: ->
     div {},
@@ -220,6 +239,7 @@ WorkSpace = React.createClass
             className: 'submit'
             type:      'submit'
             value:     'play'
+            onClick:   @play
 
 
       # Display 

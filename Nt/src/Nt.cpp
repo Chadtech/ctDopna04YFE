@@ -23,7 +23,8 @@ using v8::String;
 NAN_METHOD(returnDopna){
   NanScope();
 
-  std::cout << "9 \n";
+
+  std::cout << "A.0 \n";
 
   v8::String::Utf8Value param0(args[0]->ToString());
   std::string fileName0 = std::string(*param0);
@@ -68,7 +69,6 @@ NAN_METHOD(returnDopna){
     placeholderIndex++;
   }
 
-  std::cout << "9.D \n";
 
   // Get the ensemble, and save the voice types
   // and the voice positions in their respective
@@ -203,6 +203,7 @@ NAN_METHOD(returnDopna){
     datumIndex++;
   }
 
+  std::cout << "A.0.1 \n";
 
   datumIndex = 44;
   int leftConvolveAudioLength = (lengthL - 44) / 2;
@@ -309,8 +310,6 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
-  std::cout << "9.E \n";
-
   long pieceDurationInSamples = 0;
   int timeIndex = 0;
   while (timeIndex <  pieceDurationInBeats){
@@ -328,7 +327,8 @@ NAN_METHOD(returnDopna){
     pieceIndex++;
   }
 
-  std::cout << "9.F \n";
+
+  std::cout << "A.1 \n";
 
   int indexOfSustain;
   int indexOfFrequency;
@@ -418,7 +418,7 @@ NAN_METHOD(returnDopna){
     dimensionIndex++;
   }
 
-  std::cout << "A.0 \n";
+  std::cout << "A.2 \n";
 
   // Sort through the notes
   ensembleIndex = 0;
@@ -428,10 +428,12 @@ NAN_METHOD(returnDopna){
         if (ensembleTypes[ensembleIndex][2] == 'n'){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
 
+            std::cout << "A.3 " << pieceDurationInBeats << "\n";
 
             int pieceIndex = 0;
             long timeAtThisNote = 0;
             while (pieceIndex < pieceDurationInBeats){
+
               if (score[ensembleIndex][pieceIndex][0] == 1){
 
                 int sustain = score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ];
