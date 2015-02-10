@@ -14,6 +14,7 @@
 #include "./effect/ramp.h"
 #include "./effect/convolve.h"
 #include "./effect/volume.h"
+#include "./effect/lopass.h"
 
 #include "./wavWrite.h"
 
@@ -459,17 +460,67 @@ NAN_METHOD(returnDopna){
                   convolvedAudio
                 );
 
+                delete[] audio;
+
                 confirmation = volume(amplitude, lengthOfNote, convolvedAudio);
 
+                float direction = ensemblesPositions[ ensembleIndex ][0];
+                direction      /= ensemblesPositions[ ensembleIndex ][1];
+
+                float distance = abs(ensemblesPositions[ ensembleIndex ][0]);
+                distance      += abs(ensemblesPositions[ ensembleIndex ][1]);
+                distance       = sqrt(distance);
+
+                int delay = (int)((distance / 340) * 44100);
+
+                short * delayedAudio = new short [lengthOfNote + delay];
+
                 int sampleIndex = 0;
+                while (sampleIndex < delay){
+                  delayedAudio[ sampleIndex ] = 0;
+                  sampleIndex++;
+                }
+                sampleIndex = 0;
                 while (sampleIndex < lengthOfNote){
-                  pieceL[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
-                  pieceR[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
+                  delayedAudio[ sampleIndex + delay ] = convolvedAudio[ sampleIndex];
                   sampleIndex++;
                 }
 
                 delete[] convolvedAudio;
-                delete[] audio;
+
+                short * lopassdAudio = new short [ lengthOfNote + delay ];
+
+                sampleIndex = 0;
+                while (sampleIndex < (lengthOfNote + delay)){
+                  lopassdAudio[ sampleIndex ] = delayedAudio[ sampleIndex ];
+                  sampleIndex++;
+                }
+
+                confirmation = lopass(lopassdAudio,(lengthOfNote + delay));
+                // confirmation = volume()
+
+                std::cout << "DIRECTION AND DELAY " << direction << " " << delay << "\n";
+
+                if (direction > 0){
+                  sampleIndex = 0;
+                  while (sampleIndex < (lengthOfNote + delay)){
+                    pieceL[ sampleIndex + timeAtThisNote ] += delayedAudio[ sampleIndex ];
+                    pieceR[ sampleIndex + timeAtThisNote ] += lopassdAudio[ sampleIndex ];
+                    sampleIndex++;
+                  }
+                }
+                else{
+                  sampleIndex = 0;
+                  while (sampleIndex < (lengthOfNote + delay)){
+                    pieceR[ sampleIndex + timeAtThisNote ] += delayedAudio[ sampleIndex ];
+                    pieceL[ sampleIndex + timeAtThisNote ] += lopassdAudio[ sampleIndex ];
+                    sampleIndex++;
+                  }
+                }
+
+                delete[] lopassdAudio;
+                delete[] delayedAudio;
+
               }
 
               timeAtThisNote += times[ pieceIndex ]; 

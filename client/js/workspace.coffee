@@ -217,7 +217,6 @@ WorkSpace = React.createClass
         source.connect audioContext.destination
         source.start()
 
-        #stateAccess = @
         @setState serverCom: 'submit current', =>
           setTimeout =>
             @setState serverCom: 'submit good'

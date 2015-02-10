@@ -15,8 +15,8 @@ module.exports = (data) ->
 
   Dopna project, fileName
 
-  saveFileNameL = projectName + 'L/' + projectName + '.wav'
-  saveFileNameR = projectName + 'R/' + projectName + '.wav'
+  saveFileNameL = projectName + '/' + projectName + '.L.wav'
+  saveFileNameR = projectName + '/' + projectName + '.R.wav'
   
   Nt.dopna fileName, saveFileNameL, saveFileNameR
 
