@@ -95,56 +95,9 @@ router.route '/play'
 
     responseObject = 
       message:    'worked'
-      audioData:  (Nt.open 'stPuchL.wav')[0]
+      audioData:  (Nt.open 'stPuchLR.wav')
 
     response.json responseObject
-
-
-
-  # router.use (request, response, next) ->
-  #   console.log 'SOMETHIGN HAPPEN'
-  #   next()
-
-# router.route '/:project'
-#   .get (request, response, next) ->
-#     projectTitle = request.params.project
-#     projectPath = projectTitle + '/' + projectTitle + '.json'
-#     fs.exists projectPath, (exists) ->
-#       return next() unless exists
-#       response.json project: fs.readFileSync projectPath, 'utf8'
-
-#   .post (request, response, next) ->
-#     project = request.body.project
-#     project = JSON.parse project
-#     if fs.existsSync project.title
-#       JSONInPath = project.title + '/' + project.title + '.json'
-#       fs.writeFileSync JSONInPath, JSON.stringify project, null, 2
-#       response.json msg: 'WORKD'
-#     else
-#       fs.mkdirSync project.title
-#       JSONInPath = project.title + '/' + project.title + '.json'
-#       fs.writeFileSync JSONInPath, JSON.stringify project, null, 2
-#       response.json msg: 'WORKD'
-
-# router.route '/play/:project'
-#   .post (request, response, next) ->
-#     project = request.body.project
-#     project = JSON.parse project
-#     clonedProject = _.clone project, true
-#     response.json {buffer: Nr.handleLatest project}
-#     JSONInPath = clonedProject.title + '/' + clonedProject.title + '.json'
-#     fs.writeFileSync JSONInPath, JSON.stringify clonedProject, null, 2
-    
-# router.route '/init/:project'
-#   .post (request, response, next) ->
-#     project = request.body.project
-#     project = JSON.parse project
-#     clonedProject = _.clone project, true
-#     Nr.assembleAll project
-#     response.json msg: 'FINISHD'
-#     JSONInPath = clonedProject.title + '/' + clonedProject.title + '.json'
-#     fs.writeFileSync JSONInPath, JSON.stringify clonedProject, null, 2
-
 
 
 app.use '/api', router

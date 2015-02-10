@@ -30,7 +30,11 @@ NAN_METHOD(returnDopna){
 
   v8::String::Utf8Value param1(args[1]->ToString());
   std::string fileName1 = std::string(*param1);
-  const char * saveFileName = fileName1.c_str();
+  const char * saveFileNameL = fileName1.c_str();
+
+  v8::String::Utf8Value param2(args[2]->ToString());
+  std::string fileName2 = std::string(*param2);
+  const char * saveFileNameR = fileName2.c_str();
 
   std::ifstream dopnaFile;
   dopnaFile.open(fileName, std::ifstream::in);
@@ -314,12 +318,15 @@ NAN_METHOD(returnDopna){
   }
 
 
-  short * piece;
-  piece = new short [pieceDurationInSamples];
+  short * pieceL;
+  short * pieceR;
+  pieceL = new short [ pieceDurationInSamples ];
+  pieceR = new short [ pieceDurationInSamples ];
 
   long pieceIndex = 0;
   while (pieceIndex < pieceDurationInSamples){
-    piece[pieceIndex] = 0;
+    pieceL[ pieceIndex ] = 0;
+    pieceR[ pieceIndex ] = 0;
     pieceIndex++;
   }
 
@@ -456,7 +463,8 @@ NAN_METHOD(returnDopna){
 
                 int sampleIndex = 0;
                 while (sampleIndex < lengthOfNote){
-                  piece[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
+                  pieceL[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
+                  pieceR[ sampleIndex + timeAtThisNote ] += convolvedAudio[ sampleIndex ];
                   sampleIndex++;
                 }
 
@@ -464,7 +472,7 @@ NAN_METHOD(returnDopna){
                 delete[] audio;
               }
 
-              timeAtThisNote += times[pieceIndex]; 
+              timeAtThisNote += times[ pieceIndex ]; 
               pieceIndex++;
             }
           }
@@ -493,9 +501,11 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
-  writeWAVData( saveFileName, piece, pieceDurationInSamples * 2, 44100, 1 );
+  writeWAVData( saveFileNameL, pieceL, pieceDurationInSamples * 2, 44100, 1 );
+  writeWAVData( saveFileNameR, pieceR, pieceDurationInSamples * 2, 44100, 1 );
 
-  delete piece;
+  delete pieceL;
+  delete pieceR;
 
   NanReturnUndefined();
 }

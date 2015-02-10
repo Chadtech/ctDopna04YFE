@@ -51,6 +51,7 @@ WorkSpace = React.createClass
     subLength:        '4'
     indicesOrTempi:   true
 
+    serverCom: 'submit good'
 
   changeCurrentDimension: (event) ->
     @setState currentDimension: event.target.getAttribute 'data-index'
@@ -187,6 +188,8 @@ WorkSpace = React.createClass
 
   play: ->
 
+    @setState serverCom: 'submit danger'
+
     destinationURL = 'http://localhost:'
     destinationURL += PORT
     destinationURL += '/api/play/'
@@ -198,14 +201,14 @@ WorkSpace = React.createClass
 
     $.post destinationURL, submission
       .done (data) =>
-        numberOfSamples = data.audioData.length
+        numberOfSamples = data.audioData[0].length
         audioBuffer     = audioContext.createBuffer 2, numberOfSamples, 44100
 
         for channel in ([0,1])
           audioBufferData = audioBuffer.getChannelData channel
           sampleIndex = 0
           while sampleIndex < numberOfSamples
-            audioBufferData[ sampleIndex ] = data.audioData[ sampleIndex ] / 32767
+            audioBufferData[ sampleIndex ] = data.audioData[ channel ][ sampleIndex ] / 32767
             sampleIndex++
 
         source        = audioContext.createBufferSource()
@@ -213,6 +216,13 @@ WorkSpace = React.createClass
         
         source.connect audioContext.destination
         source.start()
+
+        #stateAccess = @
+        @setState serverCom: 'submit current', =>
+          setTimeout =>
+            @setState serverCom: 'submit good'
+          , numberOfSamples // 44
+
 
 
   render: ->
@@ -252,6 +262,14 @@ WorkSpace = React.createClass
             type:      'submit'
             value:     'play'
             onClick:   @play
+
+        div {className: 'column'},
+
+          input
+            className: @state.serverCom
+            value:     ''
+            onClick:   ->
+
 
 
       # Display 
