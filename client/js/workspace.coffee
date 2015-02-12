@@ -173,6 +173,8 @@ WorkSpace = React.createClass
 
   build: ->
 
+    @setState serverCom: 'submit danger'
+
     destinationURL = 'http://localhost:'
     destinationURL += PORT
     destinationURL += '/api/build/'
@@ -185,6 +187,8 @@ WorkSpace = React.createClass
     $.post destinationURL, submission
       .done (data) =>
         console.log data.message
+        if data.message is 'worked'
+          @setState serverCom: 'submit good'
 
   play: ->
 

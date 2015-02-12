@@ -19,4 +19,3 @@ module.exports = (data) ->
   saveFileNameR = projectName + '/' + projectName + '.R.wav'
   
   Nt.dopna fileName, saveFileNameL, saveFileNameR
-

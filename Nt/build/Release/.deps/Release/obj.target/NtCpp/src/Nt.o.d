@@ -14,7 +14,8 @@ Release/obj.target/NtCpp/src/Nt.o: ../src/Nt.cpp \
   ../src/./generate/sine.h ../src/./generate/saw.h \
   ../src/./generate/sample.h ../src/./effect/ramp.h \
   ../src/./effect/convolve.h ../src/./effect/volume.h \
-  ../src/./effect/lopass.h ../src/./wavWrite.h
+  ../src/./effect/lopass.h ../src/./effect/fadeOut.h ../src/./mix.h \
+  ../src/./wavWrite.h
 ../src/Nt.cpp:
 ../node_modules/nan/nan.h:
 /Users/Chadtech/.node-gyp/0.10.29/deps/uv/include/uv.h:
@@ -34,4 +35,6 @@ Release/obj.target/NtCpp/src/Nt.o: ../src/Nt.cpp \
 ../src/./effect/convolve.h:
 ../src/./effect/volume.h:
 ../src/./effect/lopass.h:
+../src/./effect/fadeOut.h:
+../src/./mix.h:
 ../src/./wavWrite.h:

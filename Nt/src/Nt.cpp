@@ -15,7 +15,9 @@
 #include "./effect/convolve.h"
 #include "./effect/volume.h"
 #include "./effect/lopass.h"
+#include "./effect/fadeOut.h"
 
+#include "./mix.h"
 #include "./wavWrite.h"
 
 using namespace v8;
@@ -429,107 +431,110 @@ NAN_METHOD(returnDopna){
         if (ensembleTypes[ensembleIndex][2] == 'n'){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
 
-            int pieceIndex = 0;
-            long timeAtThisNote = 0;
-            while (pieceIndex < pieceDurationInBeats){
+            float direction = atan2( 
+              ensemblesPositions[ ensembleIndex ][0],
+              ensemblesPositions[ ensembleIndex ][0]);
+            direction /= 3.14159;
 
-              if (score[ensembleIndex][pieceIndex][0] == 1){
+            float distance = (ensemblesPositions[ ensembleIndex ][0] * ensemblesPositions[ ensembleIndex ][0]);
+            distance      += (ensemblesPositions[ ensembleIndex ][1] * ensemblesPositions[ ensembleIndex ][1]);
+            distance       = sqrt(distance);
+
+            int delay = (int)((distance / 340) * 44100);
+
+            long timeAtThisNote = 0;
+            int pieceIndex = 0;
+            while (pieceIndex < pieceDurationInBeats){
+              if (score[ ensembleIndex ][ pieceIndex ][0] == 1){
 
                 int sustain = score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ];
                 float frequency = score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ];
                 float amplitude = score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ];
 
-                int lengthOfNote = sustain + leftConvolveAudioLength;
-                short * audio = new short [ sustain ];
-                
-                int confirmation = sine(sustain, frequency, audio);
-                
-                confirmation = ramp(sustain, audio);
+                short * sineWave = new short [ sustain ];
 
-                short * convolvedAudio = new short [ lengthOfNote ];
+                int confirmation = sine( sustain, frequency, sineWave );
+                confirmation     = ramp( sustain, sineWave );
+                confirmation     = volume( amplitude, sustain, sineWave);
 
-                confirmation = convolve(
-                  0.015, 
-
-                  audio,
-                  sustain, 
-
-                  leftConvolve,
-                  leftConvolveAudioLength,
-
-                  convolvedAudio
-                );
-
-                delete[] audio;
-
-                confirmation = volume(amplitude, lengthOfNote, convolvedAudio);
-
-                float direction = ensemblesPositions[ ensembleIndex ][0];
-                direction      /= ensemblesPositions[ ensembleIndex ][1];
-
-                float distance = abs(ensemblesPositions[ ensembleIndex ][0]);
-                distance      += abs(ensemblesPositions[ ensembleIndex ][1]);
-                distance       = sqrt(distance);
-
-                int delay = (int)((distance / 340) * 44100);
-
-                short * delayedAudio = new short [lengthOfNote + delay];
+                int duration = sustain + delay;
+                short * audioOut0 = new short [ duration ];
 
                 int sampleIndex = 0;
-                while (sampleIndex < delay){
-                  delayedAudio[ sampleIndex ] = 0;
+                while ( sampleIndex < delay){
+                  audioOut0[ sampleIndex ] = 0;
                   sampleIndex++;
                 }
                 sampleIndex = 0;
-                while (sampleIndex < lengthOfNote){
-                  delayedAudio[ sampleIndex + delay ] = convolvedAudio[ sampleIndex];
+                while ( sampleIndex < sustain ){
+                  //std::cout << sineWave[sampleIndex] << "\n";
+                  audioOut0[ sampleIndex + delay ] = sineWave[ sampleIndex ];
                   sampleIndex++;
                 }
 
-                delete[] convolvedAudio;
+                delete[] sineWave;
+                
+                // int durationL = duration + leftConvolveAudioLength;
+                // int durationR = duration + rightConvolveAudioLength;
+                
+                // short * audioOut1L = new short [ durationL ];
+                // short * audioOut1R = new short [ durationR ];
 
-                short * lopassdAudio = new short [ lengthOfNote + delay ];
+                // confirmation = convolve( 
+                //   0.015,
 
-                sampleIndex = 0;
-                while (sampleIndex < (lengthOfNote + delay)){
-                  lopassdAudio[ sampleIndex ] = delayedAudio[ sampleIndex ];
-                  sampleIndex++;
-                }
+                //   audioOut0,
+                //   duration,
 
-                confirmation = lopass(lopassdAudio,(lengthOfNote + delay));
-                // confirmation = volume()
+                //   leftConvolve,
+                //   leftConvolveAudioLength,
 
-                std::cout << "DIRECTION AND DELAY " << direction << " " << delay << "\n";
+                //   audioOut1L
+                // );
+
+                // confirmation = convolve( 
+                //   0.015,
+
+                //   audioOut0,
+                //   duration,
+
+                //   rightConvolve,
+                //   rightConvolveAudioLength,
+
+                //   audioOut1R
+                // );
+
+                confirmation = fadeOut(duration, audioOut0);
 
                 if (direction > 0){
                   sampleIndex = 0;
-                  while (sampleIndex < (lengthOfNote + delay)){
-                    pieceL[ sampleIndex + timeAtThisNote ] += delayedAudio[ sampleIndex ];
-                    pieceR[ sampleIndex + timeAtThisNote ] += lopassdAudio[ sampleIndex ];
+                  while (sampleIndex < duration){
+                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
+                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
                     sampleIndex++;
                   }
                 }
                 else{
                   sampleIndex = 0;
-                  while (sampleIndex < (lengthOfNote + delay)){
-                    pieceR[ sampleIndex + timeAtThisNote ] += delayedAudio[ sampleIndex ];
-                    pieceL[ sampleIndex + timeAtThisNote ] += lopassdAudio[ sampleIndex ];
+                  while (sampleIndex < duration){
+                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
+                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
                     sampleIndex++;
                   }
                 }
 
-                delete[] lopassdAudio;
-                delete[] delayedAudio;
+                delete[] audioOut0;
+
 
               }
-
-              timeAtThisNote += times[ pieceIndex ]; 
               pieceIndex++;
+              timeAtThisNote += times[ pieceIndex ]; 
             }
           }
         }
       }
     }
+
 
     if (ensembleTypes[ensembleIndex][0] == 's'){
       if (ensembleTypes[ensembleIndex][1] == 'a'){

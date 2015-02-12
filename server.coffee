@@ -88,14 +88,19 @@ router.route '/play'
       project:      request.body.project
       currentPart:  currentPart
 
-    #init(data)
+    init(data)
 
-    pathToAudio =  projectName + '/'
-    pathToAudio += projectName + '.wav'
+    pathToAudioL =  projectName + '/'
+    pathToAudioL += projectName + '.L.wav'
+    pathToAudioR =  projectName + '/'
+    pathToAudioR += projectName + '.R.wav'
+
+    leftChannel  = Nt.open pathToAudioL
+    rightChannel = Nt.open pathToAudioR
 
     responseObject = 
       message:    'worked'
-      audioData:  (Nt.open 'stPuchLR.wav')
+      audioData:  [leftChannel[0], rightChannel[0]]
 
     response.json responseObject
 
