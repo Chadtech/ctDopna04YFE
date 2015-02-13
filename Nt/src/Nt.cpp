@@ -210,7 +210,7 @@ NAN_METHOD(returnDopna){
 
   datumIndex = 44;
   int leftConvolveAudioLength = (lengthL - 44) / 2;
-  short leftConvolve [leftConvolveAudioLength];
+  float leftConvolve [ leftConvolveAudioLength ];
   int audioDatumIndex = 0;
   int thisSampleDatum [2];
 
@@ -221,9 +221,9 @@ NAN_METHOD(returnDopna){
     else{
       thisSampleDatum[1] = dataL[datumIndex];
       short sample = thisSampleDatum[1] * 256;
-      sample += thisSampleDatum[0];
-      leftConvolve[audioDatumIndex] = 0;
-      leftConvolve[audioDatumIndex] = sample;
+      sample += thisSampleDatum[0];     
+      //std::cout << "9 " << sample << " " << ((float) sample)  / 32767 << "\n";
+      leftConvolve[ audioDatumIndex ] = (((float) sample) / 32767);
       audioDatumIndex++;
     }
     datumIndex++;
@@ -247,7 +247,7 @@ NAN_METHOD(returnDopna){
 
   datumIndex = 44;
   int rightConvolveAudioLength = (lengthR - 44) / 2;
-  short rightConvolve [rightConvolveAudioLength];
+  float rightConvolve [ rightConvolveAudioLength ];
   audioDatumIndex = 0;
 
   while (datumIndex < lengthR){
@@ -258,7 +258,7 @@ NAN_METHOD(returnDopna){
       thisSampleDatum[1] = dataR[datumIndex];
       short sample = thisSampleDatum[1] * 256;
       sample += thisSampleDatum[0];
-      rightConvolve[audioDatumIndex] = sample;
+      rightConvolve[audioDatumIndex] = (((float) sample) / 32767);
       audioDatumIndex++;
     }
     datumIndex++;
@@ -474,56 +474,69 @@ NAN_METHOD(returnDopna){
 
                 delete[] sineWave;
                 
-                // int durationL = duration + leftConvolveAudioLength;
-                // int durationR = duration + rightConvolveAudioLength;
+                int durationL = duration + leftConvolveAudioLength;
+                int durationR = duration + rightConvolveAudioLength;
                 
-                // short * audioOut1L = new short [ durationL ];
-                // short * audioOut1R = new short [ durationR ];
+                short * audioOut1L = new short [ durationL ];
+                short * audioOut1R = new short [ durationR ];
 
-                // confirmation = convolve( 
-                //   0.015,
+                sampleIndex = 0;
+                while (sampleIndex < durationL){
+                  audioOut1L[ sampleIndex ] = 0;
+                  sampleIndex++;
+                }
+                sampleIndex = 0;
+                while (sampleIndex < durationR){
+                  audioOut1R[ sampleIndex ] = 0;
+                  sampleIndex++;
+                }
 
-                //   audioOut0,
-                //   duration,
+                confirmation = convolve( 
+                  0.015,
 
-                //   leftConvolve,
-                //   leftConvolveAudioLength,
+                  audioOut0,
+                  duration,
 
-                //   audioOut1L
-                // );
+                  leftConvolve,
+                  leftConvolveAudioLength,
 
-                // confirmation = convolve( 
-                //   0.015,
+                  audioOut1L
+                );
 
-                //   audioOut0,
-                //   duration,
+                confirmation = convolve( 
+                  0.015,
 
-                //   rightConvolve,
-                //   rightConvolveAudioLength,
+                  audioOut0,
+                  duration,
 
-                //   audioOut1R
-                // );
+                  rightConvolve,
+                  rightConvolveAudioLength,
 
-                confirmation = fadeOut(duration, audioOut0);
+                  audioOut1R
+                );
+
+                //confirmation = fadeOut(duration, audioOut0);
 
                 if (direction > 0){
                   sampleIndex = 0;
-                  while (sampleIndex < duration){
-                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
-                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
+                  while (sampleIndex < durationL){
+                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut1L[ sampleIndex ];
+                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut1R[ sampleIndex ];
                     sampleIndex++;
                   }
                 }
                 else{
                   sampleIndex = 0;
-                  while (sampleIndex < duration){
-                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
-                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut0[ sampleIndex ];
+                  while (sampleIndex < durationL){
+                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut1L[ sampleIndex ];
+                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut1R[ sampleIndex ];
                     sampleIndex++;
                   }
                 }
 
                 delete[] audioOut0;
+                delete[] audioOut1L;
+                delete[] audioOut1R;
 
 
               }
