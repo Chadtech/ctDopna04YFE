@@ -5,12 +5,20 @@ float sine (int sustain, float frequency, short * audio ){
 
   frequency /= 44100;
 
-  int outputIndex = 0;
-  while (outputIndex < sustain){
-    short sample = maxAmplitude * sin(pi * frequency * outputIndex * 2);
-    *(audio + outputIndex) = sample;
-    outputIndex++;
-  }
+  short sample;
 
-  return outputIndex; 
+  int sampleIndex = 0;
+  while (sampleIndex < sustain){
+
+
+
+    sample = maxAmplitude * sin(pi * frequency * sampleIndex * 2);
+    // *(audio + outputIndex) = sample;
+    audio[ sampleIndex ] = sample;
+
+    //std::cout << sample << "\n";
+
+    sampleIndex++;
+  }
+  return sampleIndex;
 }

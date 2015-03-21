@@ -1,4 +1,5 @@
 int ramp(int sustain, short * audio){
+  
   int rampDuration;
   if (sustain > 60){
     rampDuration = 60; 

@@ -1,21 +1,45 @@
-Nt = require './build/Release/NtCpp'
-oldNt = require '../reallyOldNt/noitech'
-gen = oldNt.generate
+Nt    = require './build/Release/NtCpp'
+oldNt = require './../NtYhS/generate'
 
-duration = 11025
+dataSizeIteration = 0
+while dataSizeIteration < 3
 
-start = Date.now()
+  duration = 88200 * (3 ** dataSizeIteration)
 
-Nt.saw 'dankSaw3.wav', 466.667, 8, duration
+  generateAverage = 0
+  writeAverage    = 0
+  readAverage     = 0
 
-end = Date.now()
+  averagingIteration = 0
+  while averagingIteration < 10
 
-console.log 'Saw ', end - start
+    sineGenerateStart = Date.now()
+    Nt.sine 'dankSine0.wav', 666.667, duration
+    sineGenerateTime = Date.now() - sineGenerateStart
 
-start = Date.now()
+    sineWriteStart = Date.now()
+    Nt.sineWrite 'dankSine1.wav', 666.667, duration
+    sineWriteTime = Date.now() - sineWriteStart
 
-Nt.sine 'dankSine3.wav', 466.667, duration
+    sineReadStart = Date.now()
+    Nt.sineRead 'dankSine1.wav'
+    sineReadTime = Date.now() - sineReadStart
 
-end = Date.now()
+    generateAverage += sineGenerateTime
+    writeAverage    += sineWriteTime
+    readAverage     += sineReadTime
 
-console.log 'Sine ', end - start
+    averagingIteration++
+
+  generateAverage /= 30
+  writeAverage    /= 30
+  readAverage     /= 30
+
+  console.log '#############################'
+  console.log 'TIMES FOR DURATION : ', duration
+  console.log 'GENERATE : ', generateAverage
+  console.log 'WRITE    : ', writeAverage - generateAverage
+  console.log 'READ     : ', readAverage
+
+  dataSizeIteration++
+

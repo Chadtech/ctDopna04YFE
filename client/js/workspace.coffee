@@ -40,13 +40,12 @@ WorkSpace = React.createClass
     project:    @props.project
 
     dimensions: @props.project.dimensions
-    score:      @props.project.parts[@props.currentPart].score
-    time:       @props.project.parts[@props.currentPart].time
+    score:      @props.project.score
+    time:       @props.project.time
     ensemble:   @props.project.ensemble
 
     currentDimension: 0
     currentBar:       0
-    currentPart:      0
     barLength:        '8'
     subLength:        '4'
     indicesOrTempi:   true
@@ -103,7 +102,6 @@ WorkSpace = React.createClass
   sliceOfScore: ->
     @state.score[0].slice @state.currentBar * @state.barLength,
       (@state.currentBar + numberOfDisplayBars) * @state.barLength
-
 
 
   noteUpdate: (event) ->
@@ -182,7 +180,6 @@ WorkSpace = React.createClass
     submission = 
       projectName: @state.project.name
       project:     JSON.stringify @state.project, null, 2
-      currentPart: @state.currentPart
 
     $.post destinationURL, submission
       .done (data) =>
@@ -201,7 +198,6 @@ WorkSpace = React.createClass
     submission = 
       projectName: @state.project.name
       project:     JSON.stringify @state.project, null, 2
-      currentPart: @state.currentPart
 
     $.post destinationURL, submission
       .done (data) =>
@@ -285,17 +281,6 @@ WorkSpace = React.createClass
             className: 'point'
             'display'
 
-        div {className: 'column half'},
-          
-          p
-            className: 'point'
-            'part'
-
-        div {className: 'column half'},
-
-          input
-            className: 'input half'
-            value:     @state.currentPart
 
         div {className: 'column half'},
 

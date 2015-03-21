@@ -1,6 +1,6 @@
 fs    = require 'fs'
-Nt    = require './Nt/build/release/NtCpp'
 Dopna = require './jsonToDopna'
+exec  = require('child_process').exec
 
 module.exports = (data) ->
 
@@ -14,8 +14,9 @@ module.exports = (data) ->
   fileName = projectName + '/' + projectName + '.dopna'
 
   Dopna project, fileName
-
-  saveFileNameL = projectName + '/' + projectName + '.L.wav'
-  saveFileNameR = projectName + '/' + projectName + '.R.wav'
   
-  Nt.dopna fileName, saveFileNameL, saveFileNameR
+  leftOutput  = projectName + '/' + projectName + '.L.wav'
+  rightOutput = projectName + '/' + projectName + '.R.wav'
+
+  bash = './dopnaToWav ' + fileName + ' ' + leftOutput + ' ' + rightOutput
+  exec bash

@@ -15,7 +15,7 @@ NewPiece = React.createClass
     scaleState:    'xx'
     scaleClass:    'submit half'
 
-    ensemble:      [{name: '', type: '', xPos: '', yPos: ''}]
+    ensemble:      [{name: '', type: '', xPos: '', yPos: '', convolve: ''}]
     ensembleState: 'xx'
     ensembleClass: 'submit half'
 
@@ -70,7 +70,12 @@ NewPiece = React.createClass
 
   changeVoiceYPos: (event) ->
     voiceIndex = event.target.getAttribute 'data-index'
-    @state.ensemble[voiceIndex].yPos = event.target.value
+    @state.ensemble[ voiceIndex ].yPos = event.target.value
+    @setState ensemble: @state.ensemble
+
+  changeVoiceConvolve: (event) ->
+    voiceIndex = event.target.getAttribute 'data-index'
+    @state.ensemble[ voiceIndex ].convolve = event.target.value
     @setState ensemble: @state.ensemble
 
 
@@ -121,13 +126,6 @@ NewPiece = React.createClass
     @setState beatLength: event.target.value
 
   createNewProject: ->
-    firstPart = 
-      time: ['1']
-      score: _.map @state.ensemble, (voice) => 
-        singleNote = {}
-        for dimension in @state.dimensions
-          singleNote[dimension] = ''
-        [singleNote]
 
     project = 
       name:               @state.name
@@ -137,7 +135,13 @@ NewPiece = React.createClass
       leftConvolvement:   @state.leftConvolvement
       rightConvolvement:  @state.rightConvolvement
       beatLength:         @state.beatLength
-      parts:              [firstPart]
+      time: ['1']
+      score: _.map @state.ensemble, (voice) => 
+        singleNote = {}
+        for dimension in @state.dimensions
+          singleNote[ dimension ] = ''
+        [ singleNote ]
+
 
     destinationURL = 'http://localhost:'
     destinationURL += PORT
@@ -221,11 +225,11 @@ NewPiece = React.createClass
           # Voices
           
 
-          div {className: 'column double'},
+          div {className: 'column triple'},
             div {className: 'container'},
               
               div {className: 'row'},
-                div {className: 'column double'},
+                div {className: 'column triple'},
 
                   p
                     className: 'point'
@@ -256,6 +260,12 @@ NewPiece = React.createClass
                     className: 'point'
                     'y pos'
 
+                div {className: 'column'},
+
+                  p
+                    className: 'point'
+                    'convolve'
+
               _.map @state.ensemble, (voice, voiceIndex) =>
                 div {className: 'row'},
                   div {className: 'column half'},
@@ -285,6 +295,14 @@ NewPiece = React.createClass
                       value:        @state.ensemble[voiceIndex].yPos
                       'data-index': voiceIndex
                       onChange:     @changeVoiceYPos
+
+                  div {className: 'column'},
+                    input
+                      className:    'input'
+                      value:        @state.ensemble[voiceIndex].convolve
+                      'data-index': voiceIndex
+                      onChange:     @changeVoiceConvolve
+
 
               div {className: 'row'},
                 div {className: 'column half'},
@@ -345,55 +363,23 @@ NewPiece = React.createClass
                     onClick:   @destroyDimensions
 
 
-          # Convolvement
-          
-
-          div {className: 'column double'},
-            div {className: 'container'},
+              # Beat Length
               
+                  
               div {className: 'row'},
                 div {className: 'column double'},
 
                   p
                     className: 'point'
-                    'convolvement'
+                    'beat length'
 
               div {className: 'row'},
                 div {className: 'column double'},
 
                   input
                     className:    'input double'
-                    placeholder:  '<left convolvement>'
-                    value:        @state.leftConvolvement
-                    onChange:    @changeLeftConvolvement
-
-              div {className: 'row'},
-                div {className: 'column double'},
-
-                  input
-                    className:    'input double'
-                    placeholder:  '<right convolvement>'
-                    value:        @state.rightConvolvement
-                    onChange:     @changeRightConvolvement
-
-
-            # Beat Length
-            
-                
-            div {className: 'row'},
-              div {className: 'column double'},
-
-                p
-                  className: 'point'
-                  'beat length'
-
-            div {className: 'row'},
-              div {className: 'column double'},
-
-                input
-                  className:    'input double'
-                  placeholder:  '<duration in samples>'
-                  value:        @state.beatLength
-                  onChange:    @changeBeatLength                  
+                    placeholder:  '<duration in samples>'
+                    value:        @state.beatLength
+                    onChange:    @changeBeatLength                  
 
 module.exports = NewPiece

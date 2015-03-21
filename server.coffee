@@ -5,8 +5,8 @@ http        = require 'http'
 {join}      = require 'path'
 bodyParser  = require 'body-parser'
 Nt          = require './NtYhS/noitech'
-_           = require 'lodash'
-init        = require './init'
+build       = require './build'
+exec        = require('child_process').exec
 
 
 app.use bodyParser.json()
@@ -72,7 +72,7 @@ router.route '/build'
       project:      request.body.project
       currentPart:  currentPart
 
-    init(data)
+    build(data)
 
     response.json {message: 'worked'}
 
@@ -88,7 +88,7 @@ router.route '/play'
       project:      request.body.project
       currentPart:  currentPart
 
-    init(data)
+    build(data)
 
     pathToAudioL =  projectName + '/'
     pathToAudioL += projectName + '.L.wav'

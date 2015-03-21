@@ -26,6 +26,8 @@ using v8::String;
 NAN_METHOD(returnDopna){
   NanScope();
 
+  std::cout << "6 \n";
+
 
   v8::String::Utf8Value param0(args[0]->ToString());
   std::string fileName0 = std::string(*param0);
@@ -42,9 +44,9 @@ NAN_METHOD(returnDopna){
   std::ifstream dopnaFile;
   dopnaFile.open(fileName, std::ifstream::in);
 
-  dopnaFile.seekg(0, dopnaFile.end);
-  //int length = dopnaFile.tellg();
-  dopnaFile.seekg(0, dopnaFile.beg);
+  // dopnaFile.seekg(0, dopnaFile.end);
+  // //int length = dopnaFile.tellg();
+  // dopnaFile.seekg(0, dopnaFile.beg);
 
   char header [8];
   int placeholderIndex = 0;
@@ -82,8 +84,9 @@ NAN_METHOD(returnDopna){
   int ensembleSize1 = dopnaFile.get();
   int ensembleSize = (ensembleSize0 * 256) + ensembleSize1;
 
-  short ensemblesPositions [ensembleSize][2];
-  char ensembleTypes [ensembleSize][5];
+  short ensemblesPositions [ ensembleSize ][2];
+  char ensembleTypes [ ensembleSize ][5];
+  char ensembleConvolves [ ensembleSize ][13];
   placeholderIndex = 0;
   while (placeholderIndex < ensembleSize){    
     int xPos0;
@@ -119,12 +122,23 @@ NAN_METHOD(returnDopna){
     ensemblesPositions[placeholderIndex][0] = xPos;
     ensemblesPositions[placeholderIndex][1] = yPos;
 
+    datumIndex = 0;
+    while (datumIndex < 12){
+      ensembleConvolves[ placeholderIndex ][ datumIndex ] = (char) dopnaFile.get();
+      datumIndex++;
+    }
+    ensembleConvolves[ placeholderIndex ][ 12 ] = '\0';
+
     placeholderIndex++;
   }
+
+  std::cout << "7 " << ensembleConvolves[0] << "\n";
 
   // Get Dimensions
   int numberOfDimensions = dopnaFile.get();
   char dimensions [numberOfDimensions][13];
+
+  std::cout << "7.1 \n";
 
   placeholderIndex = 0;
   while (placeholderIndex < numberOfDimensions){
@@ -137,143 +151,21 @@ NAN_METHOD(returnDopna){
     placeholderIndex++;
   }
 
-
-  // Get Left and Right Convolve file name data
-  char leftConvolveData [13];
-  char rightConvolveData [13];
-  datumIndex = 0;
-  while (datumIndex < 12){
-    leftConvolveData[datumIndex] = dopnaFile.get();
-    datumIndex++;
-  }
-  leftConvolveData[12] = '\0';
-  datumIndex = 0;
-  while (datumIndex < 12){
-    rightConvolveData[datumIndex] = dopnaFile.get();
-    datumIndex++;
-  }
-  rightConvolveData[12] = '\0';
-  bool seekRealChar = true;
-  int leftConvolveNameLength;
-  datumIndex = 0;
-  while (seekRealChar){
-    if (leftConvolveData[datumIndex] != '0'){
-      seekRealChar = false;
-      leftConvolveNameLength = 12 - datumIndex;
-    }
-    datumIndex++;
-  }
-  seekRealChar = true;
-  int rightConvolveNameLength;
-  datumIndex = 0;
-  while (seekRealChar){
-    if (rightConvolveData[datumIndex] != '0'){
-      seekRealChar = false;
-      rightConvolveNameLength = 12 - datumIndex;
-    }
-    datumIndex++;
-  }
-
-
-  // Get left and right convolve file names (sub strings of the file name data)
-  char leftConvolveName [leftConvolveNameLength + 1];
-  char rightConvolveName [rightConvolveNameLength + 1];
-  datumIndex = 0;
-  int nameStartingAt = 12 - leftConvolveNameLength;
-  while (datumIndex < leftConvolveNameLength){
-    leftConvolveName[datumIndex] = leftConvolveData[nameStartingAt + datumIndex];
-    datumIndex++;
-  }
-  leftConvolveName[leftConvolveNameLength] = '\0';
-  datumIndex = 0;
-  nameStartingAt = 12 - rightConvolveNameLength;
-  while (datumIndex < rightConvolveNameLength){
-    rightConvolveName[datumIndex] = rightConvolveData[nameStartingAt + datumIndex];
-    datumIndex++;
-  }
-  rightConvolveName[rightConvolveNameLength] = '\0';
-
-  // Get the convolve files
-  std::ifstream leftConvolveFile;
-  leftConvolveFile.open(leftConvolveName, std::ifstream::in);
-  leftConvolveFile.seekg(0, leftConvolveFile.end);
-  int lengthL = leftConvolveFile.tellg();
-  leftConvolveFile.seekg(0, leftConvolveFile.beg);
-
-  int dataL [lengthL];
-
-  datumIndex = 0;
-  while (datumIndex < lengthL){
-    dataL[datumIndex] = leftConvolveFile.get();
-    datumIndex++;
-  }
-
-  datumIndex = 44;
-  int leftConvolveAudioLength = (lengthL - 44) / 2;
-  float leftConvolve [ leftConvolveAudioLength ];
-  int audioDatumIndex = 0;
-  int thisSampleDatum [2];
-
-  while (datumIndex < lengthL){
-    if ((datumIndex % 2) == 0){
-      thisSampleDatum[0] = dataL[datumIndex];
-    }
-    else{
-      thisSampleDatum[1] = dataL[datumIndex];
-      short sample = thisSampleDatum[1] * 256;
-      sample += thisSampleDatum[0];     
-      //std::cout << "9 " << sample << " " << ((float) sample)  / 32767 << "\n";
-      leftConvolve[ audioDatumIndex ] = (((float) sample) / 32767);
-      audioDatumIndex++;
-    }
-    datumIndex++;
-  }
-  leftConvolveFile.close();
-
-  std::ifstream rightConvolveFile;
-  rightConvolveFile.open(rightConvolveName, std::ifstream::in);
-
-  rightConvolveFile.seekg(0, rightConvolveFile.end);
-  int lengthR = rightConvolveFile.tellg();
-  rightConvolveFile.seekg(0, rightConvolveFile.beg);
-
-  int dataR [lengthR];
-
-  datumIndex = 0;
-  while (datumIndex < lengthR){
-    dataR[datumIndex] = rightConvolveFile.get();
-    datumIndex++;
-  }
-
-  datumIndex = 44;
-  int rightConvolveAudioLength = (lengthR - 44) / 2;
-  float rightConvolve [ rightConvolveAudioLength ];
-  audioDatumIndex = 0;
-
-  while (datumIndex < lengthR){
-    if ((datumIndex % 2) == 0){
-      thisSampleDatum[0] = dataR[datumIndex];
-    }
-    else{
-      thisSampleDatum[1] = dataR[datumIndex];
-      short sample = thisSampleDatum[1] * 256;
-      sample += thisSampleDatum[0];
-      rightConvolve[audioDatumIndex] = (((float) sample) / 32767);
-      audioDatumIndex++;
-    }
-    datumIndex++;
-  }
-  rightConvolveFile.close();
+  std::cout << "7.2 \n";
 
   // Get the timing
   int pieceDuration0 = dopnaFile.get();
   int pieceDuration1 = dopnaFile.get();
 
+  std::cout << "7.2.1 " << pieceDuration0 << " " << pieceDuration1 << "\n";
+
   int pieceDurationInBeats = pieceDuration0 * 256;
   pieceDurationInBeats += pieceDuration1;
 
-  int times [pieceDurationInBeats];
+  int beatTimes [ pieceDurationInBeats ];
   int thisBeatTempo [2];
+
+  std::cout << "7.3 \n";
 
   datumIndex = 0;
   while (datumIndex < pieceDurationInBeats){
@@ -281,9 +173,11 @@ NAN_METHOD(returnDopna){
     thisBeatTempo[1] = dopnaFile.get();
     int thisBeatDuration = thisBeatTempo[0] * 256;
     thisBeatDuration += thisBeatTempo[1];
-    times[datumIndex] = thisBeatDuration;
+    beatTimes[datumIndex] = thisBeatDuration;
     datumIndex++;
   }
+
+  std::cout << "8 \n";
 
   // Get the score
   float score [ensembleSize][pieceDurationInBeats][numberOfDimensions + 1];
@@ -313,10 +207,12 @@ NAN_METHOD(returnDopna){
     ensembleIndex++;
   }
 
+  std::cout << "9 \n";
+
   long pieceDurationInSamples = 0;
   int timeIndex = 0;
   while (timeIndex <  pieceDurationInBeats){
-    pieceDurationInSamples += times[timeIndex];
+    pieceDurationInSamples += beatTimes[timeIndex];
     timeIndex++;
   }
 
@@ -431,6 +327,9 @@ NAN_METHOD(returnDopna){
         if (ensembleTypes[ensembleIndex][2] == 'n'){
           if (ensembleTypes[ensembleIndex][3] == 'e'){
 
+
+            // std::cout << "A \n";
+
             float direction = atan2( 
               ensemblesPositions[ ensembleIndex ][0],
               ensemblesPositions[ ensembleIndex ][0]);
@@ -442,144 +341,335 @@ NAN_METHOD(returnDopna){
 
             int delay = (int)((distance / 340) * 44100);
 
+            bool seekRealChar = true;
+            int convolveNameLength;
+            int convolveNameIndex = 0;
+            while (seekRealChar){
+              if (ensembleConvolves[ ensembleIndex ][ convolveNameIndex ] != '0'){
+                seekRealChar = false;
+                convolveNameLength = 12 - convolveNameIndex;
+              }
+              convolveNameIndex++;
+            }
+
+            char convolveName [ convolveNameLength + 1];
+            int nameStartingAt = 12 - convolveNameLength;
+
+            // std::cout << "B.0.1 " << nameStartingAt << " " << convolveNameLength << "\n";
+
+            convolveNameIndex = 0;
+            while (convolveNameIndex < convolveNameLength){
+              convolveName[ convolveNameIndex ] = ensembleConvolves[ ensembleIndex ][nameStartingAt + convolveNameIndex];
+              convolveNameIndex++;
+            }
+
+            // std::cout << "B " << convolveName << " " <<  ensembleConvolves[ensembleIndex] << "\n";
+
+            std::ifstream convolveFile;
+            convolveFile.open(convolveName, std::ifstream::in);
+            convolveFile.seekg(0, convolveFile.end);
+            int convolveFileLength = convolveFile.tellg();
+            convolveFile.seekg(0, convolveFile.beg);
+
+            // std::cout << "B.1 " << convolveFileLength << "\n";
+
+            int convolveData [ convolveFileLength ];
+
+            int convolveDatumIndex = 0;
+            while ( convolveDatumIndex < convolveFileLength){
+              convolveData[ convolveDatumIndex ] = convolveFile.get();
+              convolveDatumIndex++;
+            }
+
+            // std::cout << "B.2 \n";
+
+            convolveDatumIndex = 44;
+            int convolveLength = (convolveFileLength - 44) / 2;
+
+            // std::cout << "B.2.1 " << convolveLength << "\n";
+
+            float * convolveAudio = new float [ convolveLength ];
+            int convolveAudioIndex = 0;
+            int thisSampleDatum [2];
+            short sample;
+
+            // std::cout << "B.3 \n";
+
+            while (convolveDatumIndex < convolveFileLength){
+              if ((datumIndex % 2) == 0){
+                thisSampleDatum[0] = convolveData[ convolveDatumIndex ];
+              }
+              else{
+                thisSampleDatum[1] = convolveData[ convolveDatumIndex ];
+                sample  = thisSampleDatum[1] * 256;
+                sample += thisSampleDatum[0];
+                convolveAudio[ convolveAudioIndex ] = (((float) sample) / 32767);
+                convolveAudioIndex++;
+              }
+              convolveDatumIndex++;
+            }
+            convolveFile.close();
+
+            std::cout << "C \n";
+
             long timeAtThisNote = 0;
             int pieceIndex = 0;
             while (pieceIndex < pieceDurationInBeats){
+              std::cout << "C.1 \n";
               if (score[ ensembleIndex ][ pieceIndex ][0] == 1){
 
+                // std::cout << "D \n";
+
                 int sustain = score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ];
+
+                //std::cout << "SUSTAIN IS " << sustain << "\n";
+
                 float frequency = score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ];
                 float amplitude = score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ];
 
-                short * sineWave = new short [ sustain ];
+                std::cout << " D.1 " << sustain << " " << frequency << " " << amplitude << "\n";
 
-                int confirmation = sine( sustain, frequency, sineWave );
-                confirmation     = ramp( sustain, sineWave );
-                confirmation     = volume( amplitude, sustain, sineWave);
+                short * sineWave;
+                sineWave = new short [ sustain ];
 
-                int duration = sustain + delay;
-                short * audioOut0 = new short [ duration ];
+                //int confirmation = sine( sustain, frequency, sineWave );
 
-                int sampleIndex = 0;
-                while ( sampleIndex < delay){
-                  audioOut0[ sampleIndex ] = 0;
-                  sampleIndex++;
-                }
-                sampleIndex = 0;
-                while ( sampleIndex < sustain ){
-                  //std::cout << sineWave[sampleIndex] << "\n";
-                  audioOut0[ sampleIndex + delay ] = sineWave[ sampleIndex ];
-                  sampleIndex++;
-                }
+
+                //std::cout << "WOW \n";
+
+
+
+                // confirmation     = ramp( sustain, sineWave );
+                // confirmation     = volume( amplitude, sustain, sineWave);
+
+                // // int duration = sustain + delay;
+                // // short * audioOut0 = new short [ duration ];
+
+                // // int sampleIndex = 0;
+                // // while ( sampleIndex < delay){
+                // //   audioOut0[ sampleIndex ] = 0;
+                // //   sampleIndex++;
+                // // }
+                // // sampleIndex = 0;
+                // // while ( sampleIndex < sustain ){
+                // //   //std::cout << sineWave[sampleIndex] << "\n";
+                // //   audioOut0[ sampleIndex + delay ] = sineWave[ sampleIndex ];
+                // //   sampleIndex++;
+                // // }
+
+                // // std::cout << "E \n";
+                
+                // // duration += convolveLength;
+                
+                // // short * audioOut1 = new short [ duration ];
+
+                // // sampleIndex = 0;
+                // // while (sampleIndex < duration){
+                // //   audioOut1[ sampleIndex ] = 0;
+                // //   sampleIndex++;
+                // // }
+
+                // // confirmation = convolve( 
+                // //   0.015,
+
+                // //   audioOut0,
+                // //   duration,
+
+                // //   convolveAudio,
+                // //   convolveLength,
+
+                // //   audioOut1
+                // // );
+
+
+                // // std::cout << "E \n";
+
+                // if (direction > 0){
+                //   int sampleIndex = 0;
+                //   while (sampleIndex < sustain){
+                //     pieceL[ sampleIndex + timeAtThisNote ] += sineWave[ sampleIndex ];
+                //     pieceR[ sampleIndex + timeAtThisNote ] += sineWave[ sampleIndex ];
+                //     sampleIndex++;
+                //   }
+                // }
+                // else{
+                //   int sampleIndex = 0;
+                //   while (sampleIndex < sustain){
+                //     pieceR[ sampleIndex + timeAtThisNote ] += sineWave[ sampleIndex ];
+                //     pieceL[ sampleIndex + timeAtThisNote ] += sineWave[ sampleIndex ];
+                //     sampleIndex++;
+                //   }
+                // }
 
                 delete[] sineWave;
-                
-                int durationL = duration + leftConvolveAudioLength;
-                int durationR = duration + rightConvolveAudioLength;
-                
-                short * audioOut1L = new short [ durationL ];
-                short * audioOut1R = new short [ durationR ];
 
-                sampleIndex = 0;
-                while (sampleIndex < durationL){
-                  audioOut1L[ sampleIndex ] = 0;
-                  sampleIndex++;
-                }
-                sampleIndex = 0;
-                while (sampleIndex < durationR){
-                  audioOut1R[ sampleIndex ] = 0;
-                  sampleIndex++;
-                }
+                // // delete[] audioOut0;
+                // // delete[] audioOut1;
 
-                confirmation = convolve( 
-                  0.015,
-
-                  audioOut0,
-                  duration,
-
-                  leftConvolve,
-                  leftConvolveAudioLength,
-
-                  audioOut1L
-                );
-
-                confirmation = convolve( 
-                  0.015,
-
-                  audioOut0,
-                  duration,
-
-                  rightConvolve,
-                  rightConvolveAudioLength,
-
-                  audioOut1R
-                );
-
-                //confirmation = fadeOut(duration, audioOut0);
-
-                if (direction > 0){
-                  sampleIndex = 0;
-                  while (sampleIndex < durationL){
-                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut1L[ sampleIndex ];
-                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut1R[ sampleIndex ];
-                    sampleIndex++;
-                  }
-                }
-                else{
-                  sampleIndex = 0;
-                  while (sampleIndex < durationL){
-                    pieceR[ sampleIndex + timeAtThisNote ] += audioOut1L[ sampleIndex ];
-                    pieceL[ sampleIndex + timeAtThisNote ] += audioOut1R[ sampleIndex ];
-                    sampleIndex++;
-                  }
-                }
-
-                delete[] audioOut0;
-                delete[] audioOut1L;
-                delete[] audioOut1R;
-
+                // // std::cout << "F \n";
 
               }
               pieceIndex++;
-              timeAtThisNote += times[ pieceIndex ]; 
+              timeAtThisNote += beatTimes[ pieceIndex ]; 
             }
+            // delete[] convolveAudio;
           }
         }
       }
     }
 
+    // if (ensembleTypes[ensembleIndex][0] == 's'){
+    //   if (ensembleTypes[ensembleIndex][1] == 'a'){
+    //     if (ensembleTypes[ensembleIndex][2] == 'm'){
+    //       if (ensembleTypes[ensembleIndex][3] == 'p'){
+    //         //std::cout << "IS SAMP!!!" << "\n";
 
-    if (ensembleTypes[ensembleIndex][0] == 's'){
-      if (ensembleTypes[ensembleIndex][1] == 'a'){
-        if (ensembleTypes[ensembleIndex][2] == 'm'){
-          if (ensembleTypes[ensembleIndex][3] == 'p'){
-            //std::cout << "IS SAMP!!!" << "\n";
-
-            int pieceIndex = 0;
-            while (pieceIndex < pieceDurationInBeats){
-              // if (score[ensembleIndex][pieceIndex][0] == 1){
-              //   short * audio = new short[(int) score[ensembleIndex][pieceIndex][1]];
-              //   confirmation = sine(score[ensembleIndex][pieceIndex], audio);
-              // }
-              pieceIndex++;
-            }
-          }
-        }
-      }
-    }
+    //         int pieceIndex = 0;
+    //         while (pieceIndex < pieceDurationInBeats){
+    //           // if (score[ensembleIndex][pieceIndex][0] == 1){
+    //           //   short * audio = new short[(int) score[ensembleIndex][pieceIndex][1]];
+    //           //   confirmation = sine(score[ensembleIndex][pieceIndex], audio);
+    //           // }
+    //           pieceIndex++;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     ensembleIndex++;
   }
+
+  std::cout << "G \n";
 
   writeWAVData( saveFileNameL, pieceL, pieceDurationInSamples * 2, 44100, 1 );
   writeWAVData( saveFileNameR, pieceR, pieceDurationInSamples * 2, 44100, 1 );
 
-  delete pieceL;
-  delete pieceR;
+  std::cout << "H \n";
+
+  delete[] pieceL;
+  delete[] pieceR;
+
+  std::cout << "I \n";
+
+  NanReturnUndefined();
+
+  std::cout << "J \n";
+}
+
+
+
+
+
+// Arguments are:
+// filename frequency duration
+NAN_METHOD(sine){
+  NanScope();
+
+  v8::String::Utf8Value param1(args[0]->ToString());
+  std::string fileName0 = std::string(*param1);
+  const char * fileName = fileName0.c_str();
+
+  float frequency = args[1]->NumberValue();
+  //frequency /= 44100;
+
+  int sustain = args[2]->Uint32Value();
+
+  short * audio = new short[sustain];
+  int confirmation = sine( sustain, frequency, audio);
 
   NanReturnUndefined();
 }
 
+
+
+
+NAN_METHOD(sineWrite){
+  NanScope();
+
+  v8::String::Utf8Value param1(args[0]->ToString());
+  std::string fileName0 = std::string(*param1);
+  const char * fileName = fileName0.c_str();
+
+  float frequency = args[1]->NumberValue();
+  //frequency /= 44100;
+
+  int sustain = args[2]->Uint32Value();
+
+  short * audio = new short[sustain];
+  int confirmation = sine( sustain, frequency, audio);
+
+  writeWAVData( fileName, audio, sustain * 2, 44100, 1 );
+
+  NanReturnUndefined();
+}
+
+
+
+
+
+NAN_METHOD(sineRead){
+  NanScope();
+
+  v8::String::Utf8Value param1(args[0]->ToString());
+  std::string fileName0 = std::string(*param1);
+  const char * fileName = fileName0.c_str();
+
+  std::ifstream wav;
+  wav.open(fileName, std::ifstream::in);
+
+  wav.seekg(0, wav.end);
+  int length = wav.tellg();
+  wav.seekg(0, wav.beg);
+
+  int data [length];
+
+  int datumIndex = 0;
+  while (datumIndex < length){
+    data[datumIndex] = wav.get();
+    datumIndex++;
+  }
+
+  int numberOfChannels = data[22];
+
+  datumIndex = 44;
+  int audioDataLength = (length - 44) / 2;
+  int audioData [audioDataLength];
+  int audioDatumIndex = 0;
+  int thisSampleDatum [2];
+
+  while (datumIndex < length){
+    if ((datumIndex % 2) == 0){
+      thisSampleDatum[0] = data[datumIndex];
+    }
+    else{
+      thisSampleDatum[1] = data[datumIndex];
+      short sample = thisSampleDatum[1] * 256;
+      sample += thisSampleDatum[0];
+      audioData[audioDatumIndex] = sample;
+      audioDatumIndex++;
+    }
+    datumIndex++;
+  }
+
+  wav.close();
+
+  NanReturnUndefined();
+
+}
+
+
+
+
 void Init(Handle<Object> exports){
+  exports->Set(NanNew("sineRead"),
+    NanNew<FunctionTemplate>(sineRead)->GetFunction());
+
+  exports->Set(NanNew("sineWrite"),
+    NanNew<FunctionTemplate>(sineWrite)->GetFunction());
+
+  exports->Set(NanNew("sine"),
+    NanNew<FunctionTemplate>(sine)->GetFunction());
+
   exports->Set(NanNew("dopna"),
     NanNew<FunctionTemplate>(returnDopna)->GetFunction());
 }

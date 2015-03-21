@@ -60,25 +60,22 @@ module.exports = (dopnaAsJson, fileName) ->
     content.push yPos // 256
     content.push yPos % 256
 
+    convolve = minimumZeros voice.convolve, 12
+
+    _.forEach convolve, (char) ->
+      content.push char.charCodeAt()
+
 
   content.push dopnaAsJson.dimensions.length
   for dimension in dopnaAsJson.dimensions
     _.forEach (minimumZeros dimension, 12), (char) ->
       content.push char.charCodeAt()
 
-  _.forEach (minimumZeros dopnaAsJson.leftConvolvement, 12), (char) ->
-    content.push char.charCodeAt()
-
-  _.forEach (minimumZeros dopnaAsJson.rightConvolvement, 12), (char) ->
-    content.push char.charCodeAt()
-
-
-  # Needs to become dopnaAsJson.time.length as I change the json structure
-  content.push (dopnaAsJson.parts[0].time.length // 256)
-  content.push (dopnaAsJson.parts[0].time.length % 256)
+  content.push (dopnaAsJson.time.length // 256)
+  content.push (dopnaAsJson.time.length % 256)
 
   initialTime = parseInt dopnaAsJson.beatLength
-  times = _.map dopnaAsJson.parts[0].time, (beat) =>
+  times = _.map dopnaAsJson.time, (beat) =>
     initialTime *= parseFloat beat
     initialTime = initialTime // 1
     initialTime
@@ -91,7 +88,7 @@ module.exports = (dopnaAsJson, fileName) ->
 
 
   # For every voice in the score
-  for voice in dopnaAsJson.parts[0].score
+  for voice in dopnaAsJson.score
     # The first note of the voice provides the initial default values
     # The default values are continuously updated as each note in the
     # score is iterated through
