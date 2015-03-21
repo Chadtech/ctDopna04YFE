@@ -88,21 +88,25 @@ router.route '/play'
       project:      request.body.project
       currentPart:  currentPart
 
-    build(data)
+    returnAudio = =>
+      pathToAudioL =  projectName + '/'
+      pathToAudioL += projectName + '.L.wav'
+      pathToAudioR =  projectName + '/'
+      pathToAudioR += projectName + '.R.wav'
 
-    pathToAudioL =  projectName + '/'
-    pathToAudioL += projectName + '.L.wav'
-    pathToAudioR =  projectName + '/'
-    pathToAudioR += projectName + '.R.wav'
+      leftChannel  = Nt.open pathToAudioL
+      rightChannel = Nt.open pathToAudioR
 
-    leftChannel  = Nt.open pathToAudioL
-    rightChannel = Nt.open pathToAudioR
+      responseObject = 
+        message:    'worked'
+        audioData:  [leftChannel[0], rightChannel[0]]
 
-    responseObject = 
-      message:    'worked'
-      audioData:  [leftChannel[0], rightChannel[0]]
+      response.json responseObject
 
-    response.json responseObject
+
+    build(data, returnAudio)
+
+
 
 
 app.use '/api', router

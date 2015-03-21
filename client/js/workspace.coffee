@@ -138,7 +138,7 @@ WorkSpace = React.createClass
     while timeIndex <= timeLimit
       rate *= parseFloat @state.time[timeIndex]
       timeIndex++
-    (rate + '')
+    (rate + '').substring(0, 7)
 
 
   currentBarChange: (event) ->
@@ -186,6 +186,7 @@ WorkSpace = React.createClass
         console.log data.message
         if data.message is 'worked'
           @setState serverCom: 'submit good'
+
 
   play: ->
 

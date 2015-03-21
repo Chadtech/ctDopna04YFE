@@ -2,7 +2,7 @@ package main
 
 import (
     //"bufio"
-    "fmt"
+    // "fmt"
     // "io"
     // "io/ioutil"
     "strconv"
@@ -33,6 +33,27 @@ func sine( sustain int, frequency float64) []int {
   }
 
   return output
+}
+
+
+func ramp( audio []int ) []int {
+
+  var rampDuration float32
+  if len(audio) > 60 {
+    rampDuration = 60
+  } else {
+    rampDuration = float32(len(audio))
+  }
+
+ for sampleIndex := 0; sampleIndex < int(rampDuration); sampleIndex++ {
+    audio[ sampleIndex ] = int(float32(sampleIndex) / rampDuration)
+ }
+  
+ for sampleIndex := 0; sampleIndex < int(rampDuration); sampleIndex++ {
+    audio[ len(audio) - 1 - sampleIndex ] = int(float32(sampleIndex) / rampDuration)
+ }
+
+ return audio
 }
 
 
