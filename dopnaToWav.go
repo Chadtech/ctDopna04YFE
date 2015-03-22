@@ -2,7 +2,7 @@ package main
 
 import (
     //"bufio"
-    // "fmt"
+    "fmt"
     // "io"
     // "io/ioutil"
     "strconv"
@@ -36,6 +36,7 @@ func sine( sustain int, frequency float64) []int {
 }
 
 
+
 func ramp( audio []int ) []int {
 
   var rampDuration float32
@@ -56,6 +57,32 @@ func ramp( audio []int ) []int {
  return audio
 }
 
+
+
+func volume( audio []int, volume float32 ) []int {
+
+  for sampleIndex := 0; sampleIndex < len(audio); sampleIndex++ {
+    // fmt.Println(int(float32(audio[ sampleIndex ]) * volume), volume, audio[ sampleIndex ])
+    audio[ sampleIndex ] = int(float32(audio[ sampleIndex ]) * volume)
+  }
+
+  return audio
+}
+
+
+func delayBy( audio []int, delay int) []int {
+  output := make([]int, delay + len(audio))
+
+  for delayIndex := 0; delayIndex < delay; delayIndex++ {
+    output[ delayIndex] = 0
+  }
+
+  for sampleIndex := 0; sampleIndex < len(audio); sampleIndex++ {
+    output[ sampleIndex ] = audio[ sampleIndex ]
+  }
+
+  return output
+}
 
 func writeWAV( saveFileName string, audio []int) {
 
@@ -146,8 +173,6 @@ func main() {
 
 
 
-  // Get the scale
-  // First as strings, then converted to floats  
   scaleLengthByte := make([]byte, 1)
   dopnaFile.Read(scaleLengthByte)
 
@@ -199,6 +224,8 @@ func main() {
 
   }
 
+
+
   numberOfDimensionsByte := make([]byte, 1)
   dopnaFile.Read(numberOfDimensionsByte)
   numberOfDimensions := int(numberOfDimensionsByte[0])
@@ -210,6 +237,8 @@ func main() {
     dopnaFile.Read(dimensionByte)
     dimensions[ dimensionIndex ] = string(dimensionByte)
   }
+
+
 
   pieceDurationByte := make([]byte, 2)
   dopnaFile.Read(pieceDurationByte)
@@ -226,8 +255,10 @@ func main() {
     beatTimes[ beatIndex ] += int(thisBeatDuration[1])
   }
 
-  score := make([][][]float32, ensembleSize)
 
+
+
+  score := make([][][]float32, ensembleSize)
   for ensembleIndex := 0; ensembleIndex < ensembleSize; ensembleIndex++ {
 
     score[ensembleIndex] = make([][]float32, pieceDurationInBeats)
@@ -251,7 +282,6 @@ func main() {
   }
 
   var pieceDurationInSamples int64 = 0
-
   for timeIndex := 0; timeIndex < pieceDurationInBeats; timeIndex++ {
     pieceDurationInSamples += int64(beatTimes[ timeIndex ])
   }
@@ -264,9 +294,11 @@ func main() {
     pieceR[ pieceIndex ] = 0
   }
 
+
+
   var indexOfSustain int
   var indexOfFrequency int
-  // var indexOfAmplitude int
+  var indexOfAmplitude int
 
   for dimensionIndex := 0; dimensionIndex < numberOfDimensions; dimensionIndex++ {
     
@@ -278,10 +310,12 @@ func main() {
       indexOfFrequency = dimensionIndex + 1
     }
 
-    // if dimensions[ dimensionIndex ] == "000amplitude" {
-    //   indexOfAmplitude = dimensionIndex + 1
-    // }
+    if dimensions[ dimensionIndex ] == "000amplitude" {
+      indexOfAmplitude = dimensionIndex + 1
+    }
   }
+
+
 
   for ensembleIndex := 0; ensembleIndex < ensembleSize; ensembleIndex++ {
     
@@ -299,7 +333,9 @@ func main() {
       distance += math.Pow(float64(ensembleYPositions[ ensembleIndex ]), 2)
       distance = math.Sqrt(distance)
 
-      //var delay int = int((distance / 340) * 44100 )
+      var delay int = int((distance / 340) * 44100 )
+
+      fmt.Println( delay )
 
       seekRealChar := true
       convolveNameStartAt := 0
@@ -330,13 +366,16 @@ func main() {
       for pieceIndex := 0; pieceIndex < pieceDurationInBeats; pieceIndex++ {
         if score[ ensembleIndex ][ pieceIndex ][0] == 1 {
 
-          sustain := int(score[ ensembleIndex ][ pieceIndex ][ indexOfSustain])
+          sustain := int(score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ])
           frequency := score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ]
-          // amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
+          amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
 
           thisNote := sine(sustain, float64(frequency))
+          thisNote = ramp( thisNote )
+          thisNote = volume( thisNote, float32(amplitude))
+          thisNote = delayBy( thisNote, delay)
 
-          for sampleIndex := 0; sampleIndex < sustain; sampleIndex++ {
+          for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
             pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
             pieceL[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
           }

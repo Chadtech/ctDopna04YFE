@@ -20,4 +20,5 @@ module.exports = (data, next) ->
 
   bash = './dopnaToWav ' + fileName + ' ' + leftOutput + ' ' + rightOutput
   exec bash, (error, stdout) =>
+    console.log stdout
     next?()
