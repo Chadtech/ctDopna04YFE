@@ -2,7 +2,7 @@ package main
 
 import (
     //"bufio"
-    "fmt"
+    // "fmt"
     // "io"
     // "io/ioutil"
     "strconv"
@@ -17,6 +17,7 @@ func check(e error){
 }
 
 
+// Function to generate a sine wave
 func sine( sustain int, frequency float64) []int {
 
   output := make([]int, sustain)
@@ -37,6 +38,8 @@ func sine( sustain int, frequency float64) []int {
 
 
 
+//  Function to quickly volume ramp the beginning
+//  and end of a audio buffer
 func ramp( audio []int ) []int {
 
   var rampDuration float32
@@ -59,10 +62,10 @@ func ramp( audio []int ) []int {
 
 
 
+// A function to change the volume of an audio buffer 
 func volume( audio []int, volume float32 ) []int {
 
   for sampleIndex := 0; sampleIndex < len(audio); sampleIndex++ {
-    // fmt.Println(int(float32(audio[ sampleIndex ]) * volume), volume, audio[ sampleIndex ])
     audio[ sampleIndex ] = int(float32(audio[ sampleIndex ]) * volume)
   }
 
@@ -70,6 +73,9 @@ func volume( audio []int, volume float32 ) []int {
 }
 
 
+
+//  A function to pad the beginning of an audio buffer with
+//  silence
 func delayBy( audio []int, delay int) []int {
   output := make([]int, delay + len(audio))
 
@@ -84,6 +90,10 @@ func delayBy( audio []int, delay int) []int {
   return output
 }
 
+
+
+// A function to write an audio buffer to a 
+// single channel wav file
 func writeWAV( saveFileName string, audio []int) {
 
   savedFile, err := os.Create(saveFileName)
@@ -161,18 +171,27 @@ func writeWAV( saveFileName string, audio []int) {
 
 }
 
+
+
+
 func main() {
 
+
+  // Get the arguments, which are the names
+  // of the files we are opening and saving
   dopnaFileName := os.Args[1]
   saveFileNameL := os.Args[2]
   saveFileNameR := os.Args[3]
 
+  // Open up the Dopna file
   dopnaFile, err := os.Open(dopnaFileName)
   check(err)
   dopnaFile.Seek(8, 0)
 
 
 
+  // Get the length of the musical scale
+  // which is by default 7 intervals long
   scaleLengthByte := make([]byte, 1)
   dopnaFile.Read(scaleLengthByte)
 
@@ -191,6 +210,8 @@ func main() {
 
 
 
+  // Read the information regarding
+  // the voices in the ensemble
   ensembleSizeByte := make([]byte, 2)
   dopnaFile.Read(ensembleSizeByte)
 
@@ -226,6 +247,9 @@ func main() {
 
 
 
+  // Get the dimensions, meaning, get all the dimensions
+  // that a note possesses (typically things like volume
+  // tone, sustain)
   numberOfDimensionsByte := make([]byte, 1)
   dopnaFile.Read(numberOfDimensionsByte)
   numberOfDimensions := int(numberOfDimensionsByte[0])
@@ -240,6 +264,9 @@ func main() {
 
 
 
+
+  // Get the duration of the piece in beats and then collect 
+  // the duration in samples of each beat
   pieceDurationByte := make([]byte, 2)
   dopnaFile.Read(pieceDurationByte)
 
@@ -258,6 +285,8 @@ func main() {
 
 
 
+  // Read the data for every note, which is an array
+  // of values, with each indice corresponding to a dimension
   score := make([][][]float32, ensembleSize)
   for ensembleIndex := 0; ensembleIndex < ensembleSize; ensembleIndex++ {
 
@@ -281,11 +310,18 @@ func main() {
     }
   }
 
+
+
+  // Figure out the duration of the piece in samples
+  // by getting the sum of durations of each beat
   var pieceDurationInSamples int64 = 0
   for timeIndex := 0; timeIndex < pieceDurationInBeats; timeIndex++ {
     pieceDurationInSamples += int64(beatTimes[ timeIndex ])
   }
 
+
+
+  // Create an audio buffer for the left and right channels
   pieceL := make([]int, pieceDurationInSamples)
   pieceR := make([]int, pieceDurationInSamples)
 
@@ -296,6 +332,7 @@ func main() {
 
 
 
+  // Figure out what the index is for each dimension
   var indexOfSustain int
   var indexOfFrequency int
   var indexOfAmplitude int
@@ -317,29 +354,20 @@ func main() {
 
 
 
+  // Read through the entire score, generate an audio buffer
+  // from that note, and add that audio buffer to the output
+  // audio buffer
   for ensembleIndex := 0; ensembleIndex < ensembleSize; ensembleIndex++ {
     
 
-    if ensembleTypes[ ensembleIndex ] == "sine"{
 
-      var direction float64 = math.Atan2(
-        float64(ensembleXPositions[ ensembleIndex ]), 
-        float64(ensembleYPositions[ ensembleIndex ]))
-
-      direction /= math.Pi
-
-      var distance float64 
-      distance = math.Pow(float64(ensembleXPositions[ ensembleIndex ]), 2)
-      distance += math.Pow(float64(ensembleYPositions[ ensembleIndex ]), 2)
-      distance = math.Sqrt(distance)
-
-      var delay int = int((distance / 340) * 44100 )
-
-      fmt.Println( delay )
-
+      // Get the name for the convolve file
+      // (a wav file)
+      // 
+      // Convolving is a technique to simulate how the note would sound
+      // in a particular room, or from a particular amplifier
       seekRealChar := true
       convolveNameStartAt := 0
-
       for seekRealChar {
         if ensembleConvolves[ ensembleIndex ][ convolveNameStartAt ] != 48 {
           seekRealChar = false
@@ -348,18 +376,42 @@ func main() {
       }
 
       ensembleConvolves[ ensembleIndex ] = ensembleConvolves[ ensembleIndex][ (convolveNameStartAt - 1) : 12 ]
-    
 
 
 
-      //
-
-      // OPEN CONVOLVE FILE HERE
 
       //
 
+      // OPEN CONVOLVE FILE HERE ---- WIP
+
+      //
 
 
+
+
+      // Figure out from what direction, this voice
+      // is coming from
+      var direction float64 = math.Atan2(
+        float64(ensembleXPositions[ ensembleIndex ]), 
+        float64(ensembleYPositions[ ensembleIndex ]))
+      direction /= math.Pi
+
+
+
+      // Figure out how far away it is, and calculate
+      // the duration it would take the sound to reach
+      // the listener from that distance (in meters)
+      var distance float64 
+      distance = math.Pow(float64(ensembleXPositions[ ensembleIndex ]), 2)
+      distance += math.Pow(float64(ensembleYPositions[ ensembleIndex ]), 2)
+      distance = math.Sqrt(distance)
+      var delay int = int((distance / 340) * 44100 )
+
+
+
+    // Check for the type of this voice, and generate the 
+    // Notes according to that voice
+    if ensembleTypes[ ensembleIndex ] == "sine"{
 
       var timeAtThisNote int64 = 0
 
@@ -370,10 +422,10 @@ func main() {
           frequency := score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ]
           amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
 
-          thisNote := sine(sustain, float64(frequency))
+          thisNote := sine(sustain, float64(frequency) )
           thisNote = ramp( thisNote )
-          thisNote = volume( thisNote, float32(amplitude))
-          thisNote = delayBy( thisNote, delay)
+          thisNote = volume( thisNote, float32(amplitude) )
+          thisNote = delayBy( thisNote, delay )
 
           for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
             pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
@@ -381,26 +433,21 @@ func main() {
           }
 
         }
+
         timeAtThisNote += int64(beatTimes[ pieceIndex ])
+
       }
     }
   }
 
+
+
+  // write the output audio buffers to disk as wavs
   writeWAV( saveFileNameL, pieceL)
   writeWAV( saveFileNameR, pieceR)
 
   // fmt.Println("DANK MEME")
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

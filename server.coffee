@@ -19,6 +19,7 @@ PORT = Number process.env.PORT or 1776
 router = express.Router()
 
 
+
 router.route '/create'
   .post (request, response, next) ->
 
@@ -32,6 +33,7 @@ router.route '/create'
       response.json message: 'worked'
     else
       response.json message: 'didnt worked'
+
 
 
 router.route '/open'
@@ -48,6 +50,7 @@ router.route '/open'
       response.json message: 'didnt worked'
 
 
+
 router.route '/update'
   .post (request, response, next) ->
 
@@ -59,6 +62,7 @@ router.route '/update'
     fs.writeFileSync pathToJSON, request.body.project
 
     response.json {message: 'worked'}
+
 
 
 router.route '/build'
@@ -75,6 +79,7 @@ router.route '/build'
     build(data)
 
     response.json {message: 'worked'}
+
 
 
 router.route '/play'
@@ -122,3 +127,6 @@ httpServer = http.createServer app
 
 httpServer.listen PORT, ->
   console.log 'SERVER RUNNING ON ' + PORT
+
+
+  

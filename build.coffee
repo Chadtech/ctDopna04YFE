@@ -13,11 +13,14 @@ module.exports = (data, next) ->
 
   fileName = projectName + '/' + projectName + '.dopna'
 
+  # Write a dopna file to disk
   Dopna project, fileName
 
   leftOutput  = projectName + '/' + projectName + '.L.wav'
   rightOutput = projectName + '/' + projectName + '.R.wav'
 
+
+  # Convert the dopna file to a wav file
   bash = './dopnaToWav ' + fileName + ' ' + leftOutput + ' ' + rightOutput
   exec bash, (error, stdout) =>
     console.log stdout
