@@ -127,6 +127,3 @@ httpServer = http.createServer app
 
 httpServer.listen PORT, ->
   console.log 'SERVER RUNNING ON ' + PORT
-
-
-  

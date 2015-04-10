@@ -12,9 +12,11 @@ WorkSpace = require './workspace'
 {p, div, input} = React.DOM
 
 IndexClass = React.createClass
+
+
   getInitialState: ->
     projectSet:  false
-    project: null
+    project:     null
 
 
   updateState: (newState, project) ->
@@ -23,6 +25,7 @@ IndexClass = React.createClass
 
 
   render: ->
+
     div {},
       div {className: 'spacer'}
       div {className: 'indent'},
@@ -47,8 +50,10 @@ IndexClass = React.createClass
                 NewPiece updateState: @updateState
 
 
-
       div {className: 'spacer'}
+
+
+
 
 IndexPage = React.createFactory IndexClass
 

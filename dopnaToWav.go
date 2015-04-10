@@ -1,7 +1,7 @@
 package main
 
 import (
-    //"bufio"
+    // "bufio"
     // "fmt"
     // "io"
     // "io/ioutil"
@@ -9,6 +9,7 @@ import (
     "os"
     "math"
 )
+
 
 func check(e error){
   if e != nil {
@@ -30,13 +31,26 @@ func sine( sustain int, frequency float64) []int {
 
     sample := float64(maxAmplitude) * math.Sin(math.Pi * frequency * float64(index))
 
-    output[index] = int(sample * 0.25)
+    output[index] = int(sample)
   }
 
   return output
 }
 
 
+func fadeout( audio []int ) []int {
+
+  fadeIncrement := 1 / float32(len(audio))
+
+  output := make([]int, len(audio))
+
+  for sampleIndex := 0; sampleIndex < len(audio); sampleIndex++ {
+    output[ sampleIndex ] = int(float32(audio[sampleIndex]) * (1 - (fadeIncrement * float32(sampleIndex))))
+  }
+
+  return output
+
+}
 
 //  Function to quickly volume ramp the beginning
 //  and end of a audio buffer
@@ -90,6 +104,72 @@ func delayBy( audio []int, delay int) []int {
   return output
 }
 
+
+
+func convolve( audio []int, convolveSeed []int, volumeReduction float32 ) []int {
+
+  lengthOfOutput := int64(len(audio) + len(convolveSeed))
+
+
+  output := make( []int, lengthOfOutput )
+
+  for outputIndex := int64(0); outputIndex < lengthOfOutput; outputIndex++ {
+    output[ outputIndex ] = 0
+  }
+
+  for convolveIndex := int64(0); convolveIndex < int64(len(convolveSeed)); convolveIndex++ {
+
+    for audioIndex := int64(0); audioIndex < int64(len(audio)); audioIndex++ {
+
+      factor := volumeReduction * (float32(convolveSeed[ convolveIndex ]) / 32767)
+
+      output[ convolveIndex + audioIndex ] += int(float32(audio[ audioIndex ]) * factor)
+
+    }
+
+  }
+
+  return output
+
+}
+
+
+
+func readWAV( openFileName string ) []int{
+
+  readFile, err := os.Open( openFileName )
+  check(err)
+
+  readFile.Seek(40, 0)
+
+  var sizeOfAudioBuffer int64 = 0
+  durationByte := make([]byte, 4)
+
+  readFile.Read( durationByte )
+
+  sizeOfAudioBuffer += int64(durationByte[0])
+  sizeOfAudioBuffer += 256 * int64(durationByte[1])
+  sizeOfAudioBuffer += 4096 * int64(durationByte[2])
+  sizeOfAudioBuffer += 65536 * int64(durationByte[3])
+  durationOfAudio := int64(sizeOfAudioBuffer / 2)
+
+  output := make([]int, durationOfAudio )
+
+  for datumIndex := int64(0); datumIndex < durationOfAudio; datumIndex++ {
+
+    thisSampleByte := make([]byte, 2)
+    readFile.Read( thisSampleByte )
+
+
+    output[ datumIndex ] = 0
+    output[ datumIndex ] += int(thisSampleByte[ 0 ])
+    output[ datumIndex ] += int(thisSampleByte[ 1 ]) * 256
+
+  }
+
+  return output
+
+}
 
 
 // A function to write an audio buffer to a 
@@ -162,6 +242,7 @@ func writeWAV( saveFileName string, audio []int) {
 
     wavData[ (audioIndex * 2) + 1 ] = byte(audio[audioIndex] / 256)
     wavData[ audioIndex * 2 ] = byte(audio[audioIndex] % 256)
+
   }
 
   savedFile.Write(wavHeader)
@@ -234,10 +315,20 @@ func main() {
     ensembleXPositions[ ensembleIndex ] = int(xPosByte[0]) * 256
     ensembleXPositions[ ensembleIndex ] += int(xPosByte[1])
 
+    if ensembleXPositions[ ensembleIndex ] > 32768 {
+      ensembleXPositions[ ensembleIndex ] -= 32768
+    }
+
+
     yPosByte := make([]byte, 2)
     dopnaFile.Read(yPosByte)
     ensembleYPositions[ ensembleIndex ] = int(yPosByte[0]) * 256
     ensembleYPositions[ ensembleIndex ] = int(yPosByte[1])
+
+    if ensembleYPositions[ ensembleIndex ] > 32768 {
+      ensembleYPositions[ ensembleIndex ] -= 32768    
+    }
+
 
     convolveByte := make([]byte, 12)
     dopnaFile.Read(convolveByte)
@@ -377,15 +468,7 @@ func main() {
 
       ensembleConvolves[ ensembleIndex ] = ensembleConvolves[ ensembleIndex][ (convolveNameStartAt - 1) : 12 ]
 
-
-
-
-      //
-
-      // OPEN CONVOLVE FILE HERE ---- WIP
-
-      //
-
+      convolveSeed := readWAV( "stPuchL.wav" )
 
 
 
@@ -405,6 +488,7 @@ func main() {
       distance = math.Pow(float64(ensembleXPositions[ ensembleIndex ]), 2)
       distance += math.Pow(float64(ensembleYPositions[ ensembleIndex ]), 2)
       distance = math.Sqrt(distance)
+
       var delay int = int((distance / 340) * 44100 )
 
 
@@ -425,7 +509,10 @@ func main() {
           thisNote := sine(sustain, float64(frequency) )
           thisNote = ramp( thisNote )
           thisNote = volume( thisNote, float32(amplitude) )
+          thisNote = fadeout( thisNote )
+
           thisNote = delayBy( thisNote, delay )
+          thisNote = convolve( thisNote, convolveSeed, 0.05 )
 
           for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
             pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
@@ -439,8 +526,6 @@ func main() {
       }
     }
   }
-
-
 
   // write the output audio buffers to disk as wavs
   writeWAV( saveFileNameL, pieceL)

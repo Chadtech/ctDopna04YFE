@@ -35,6 +35,7 @@ OpenPiece = React.createClass
 
 
   render: ->
+
     div {className: 'column triple'},
       div {className: 'container'},
         div {className: 'row'},

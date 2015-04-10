@@ -49,8 +49,13 @@ WorkSpace = React.createClass
     barLength:        '8'
     subLength:        '4'
     indicesOrTempi:   true
+    copyFrom:         ''
+    copyTo:           ''
+    copyLength:       ''
 
     serverCom: 'submit good'
+
+
 
   changeCurrentDimension: (event) ->
     @setState currentDimension: event.target.getAttribute 'data-index'
@@ -145,6 +150,29 @@ WorkSpace = React.createClass
     @setState currentBar: event.target.value
 
 
+  copyFromChange: (event) ->
+    @setState copyFrom: event.target.value
+
+
+  copyToChange: (event) ->
+    @setState copyTo: event.target.value
+
+
+  copyLengthChange: (event) ->
+    @setState copyLength: event.target.value
+
+
+  copyBars: (event) ->
+    from        = parseInt @state.copyFrom
+    to          = parseInt @state.copyTo
+    copyLength  = parseInt @state.copyLength
+    for voiceIndex in [0.. @state.score.length - 1]
+      copiedChunk = _.clone(@state.score[ voiceIndex ].slice from, from + copyLength)
+      for noteIndex in [0.. copiedChunk.length - 1]
+        @state.score[ voiceIndex ].splice (to + noteIndex), 0, copiedChunk[ noteIndex ]
+      @setState score: @state.score
+
+
   addOneCurrentBar: ->
     @setState currentBar: (@state.currentBar + 1)
 
@@ -226,7 +254,7 @@ WorkSpace = React.createClass
 
 
   render: ->
-    div {},
+    div null,
 
 
       # Options
@@ -268,8 +296,6 @@ WorkSpace = React.createClass
           input
             className: @state.serverCom
             value:     ''
-            onClick:   ->
-
 
 
       # Display 
@@ -348,6 +374,58 @@ WorkSpace = React.createClass
             type:      'submit'
             value:     '>'
             onClick:   @addOneCurrentBar
+
+
+      # Copy
+
+      div className: 'row',
+        div className: 'column',
+
+          input
+            className: 'submit'
+            type:      'submit'
+            value:     'copy bars'
+            onClick:   @copyBars
+
+
+        div className: 'column half',
+
+          p 
+            className: 'point'
+            'from'
+
+        div className: 'column half',
+
+          input
+            className:    'input half'
+            value:        @state.copyFrom
+            onChange:     @copyFromChange
+
+        div className: 'column half',
+
+          p
+            className: 'point'
+            'to'
+
+        div className: 'column half',
+
+          input
+            className: 'input half'
+            value:     @state.copyTo
+            onChange:  @copyToChange
+
+        div className: 'column half',
+
+          p
+            className: 'point'
+            'of len'
+
+        div className: 'column half',
+
+          input
+            className: 'input half'
+            value:     @state.copyLength
+            onChange:  @copyLengthChange
 
 
       # Dimensions
