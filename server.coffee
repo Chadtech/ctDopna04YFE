@@ -19,7 +19,6 @@ PORT = Number process.env.PORT or 1776
 router = express.Router()
 
 
-
 router.route '/create'
   .post (request, response, next) ->
 
@@ -51,34 +50,18 @@ router.route '/open'
 
 
 
-router.route '/update'
-  .post (request, response, next) ->
-
-    projectName = request.body.projectName
-
-    if not fs.existsSync projectName
-      fs.mkdirSync projectName
-    pathToJSON = projectName + '/' + projectName + '.json'
-    fs.writeFileSync pathToJSON, request.body.project
-
-    response.json {message: 'worked'}
-
-
-
 router.route '/build'
   .post (request, response, next) ->
 
-    projectName = request.body.projectName
-    currentPart = request.body.currentPart
-
     data =
-      name:         projectName
+      name:         request.body.projectName
       project:      request.body.project
-      currentPart:  currentPart
 
-    build(data)
+    sayWorked = =>
+      response.json message: 'worked'
 
-    response.json {message: 'worked'}
+    build data, sayWorked
+
 
 
 
@@ -86,16 +69,17 @@ router.route '/play'
   .post (request, response, next) ->
 
     projectName = request.body.projectName
-    currentPart = request.body.currentPart
+    project     = request.body.project
 
     data =
       name:         projectName
       project:      request.body.project
-      currentPart:  currentPart
 
     returnAudio = =>
+      
       pathToAudioL =  projectName + '/'
       pathToAudioL += projectName + '.L.wav'
+
       pathToAudioR =  projectName + '/'
       pathToAudioR += projectName + '.R.wav'
 
@@ -104,13 +88,11 @@ router.route '/play'
 
       responseObject = 
         message:    'worked'
-        audioData:  [leftChannel[0], rightChannel[0]]
+        audioData:  [ leftChannel[0], rightChannel[0] ]
 
       response.json responseObject
 
-
-    build(data, returnAudio)
-
+    build data, returnAudio
 
 
 

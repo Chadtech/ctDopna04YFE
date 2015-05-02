@@ -20,7 +20,7 @@ OpenPiece = React.createClass
 
   openProject: ->
 
-    destinationURL = 'http://localhost:'
+    destinationURL =  'http://localhost:'
     destinationURL += PORT 
     destinationURL += '/api/open/'
 
@@ -36,24 +36,24 @@ OpenPiece = React.createClass
 
   render: ->
 
-    div {className: 'column triple'},
-      div {className: 'container'},
-        div {className: 'row'},
-          div {className: 'column'},
+    div className:          'column triple',
+      div className:        'container',
+        div className:      'row',
+          div className:    'column',
         
             input
-              className:  'submit'
-              type:       'submit'
-              value:      'Open'
-              onClick:    @openProject
+              className:    'submit'
+              type:         'submit'
+              value:        'Open'
+              onClick:      @openProject
 
-          div {className: 'column oneAndHalf'},
+          div className:    'column oneAndHalf',
 
             input
-              className:   'input double'
-              placeholder: '<name>'
-              value:       @state.openName
-              onChange:    @changeOpenName
+              className:    'input double'
+              placeholder:  '<name>'
+              value:        @state.openName
+              onChange:     @changeOpenName
               
 
 module.exports = OpenPiece

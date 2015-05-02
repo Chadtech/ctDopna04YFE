@@ -49,9 +49,12 @@ WorkSpace = React.createClass
     barLength:        '8'
     subLength:        '4'
     indicesOrTempi:   true
+    beatsOrDurations: false
     copyFrom:         ''
     copyTo:           ''
     copyLength:       ''
+    playFrom:         ''
+    playTo:           ''
 
     serverCom: 'submit good'
 
@@ -118,6 +121,9 @@ WorkSpace = React.createClass
     @state.score[voiceIndex][noteIndex][currentDimension] = newValue
     @setState score: @state.score
 
+  handleProjectName: (event) ->
+    @state.project.name = event.target.value
+    @setState project: @state.project
 
   changeBarLength: (event) ->
     @setState barLength: event.target.value
@@ -129,6 +135,9 @@ WorkSpace = React.createClass
 
   indicesTempiSwap: ->
     @setState indicesOrTempi: not @state.indicesOrTempi
+
+  beatsDurationsSwap: ->
+    @setState beatsOrDurations: not @state.beatsOrDurations
 
 
   changeTime: (event) ->
@@ -162,15 +171,27 @@ WorkSpace = React.createClass
     @setState copyLength: event.target.value
 
 
+  playFromChange: (evnet) ->
+    @setState playFrom: event.target.value
+
+
+  playToChange: (event) ->
+    @setState playTo: event.target.value
+
   copyBars: (event) ->
     from        = parseInt @state.copyFrom
     to          = parseInt @state.copyTo
     copyLength  = parseInt @state.copyLength
+
     for voiceIndex in [0.. @state.score.length - 1]
-      copiedChunk = _.clone(@state.score[ voiceIndex ].slice from, from + copyLength)
+      copiedChunk = _.cloneDeep(@state.score[ voiceIndex ].slice from, from + copyLength)
       for noteIndex in [0.. copiedChunk.length - 1]
         @state.score[ voiceIndex ].splice (to + noteIndex), 0, copiedChunk[ noteIndex ]
       @setState score: @state.score
+
+    for noteIndex in [0.. copiedChunk.length - 1]
+      @state.time.splice (to + noteIndex), 0, @state.time[ from + noteIndex ]
+    @setState time: @state.time
 
 
   addOneCurrentBar: ->
@@ -224,9 +245,26 @@ WorkSpace = React.createClass
     destinationURL += PORT
     destinationURL += '/api/play/'
 
+    beatTimeAtStartOfPiece = @state.project.beatLength
+    if (parseInt @state.playFrom) > 0
+      beatTimeAtStartOfPiece = _.reduce (@state.project.time.slice 0, (parseInt @state.playFrom)), (finalTempo, thisTempo) ->
+        thisTempo   = parseInt thisTempo
+        finalTempo  = parseInt finalTempo
+        finalTempo * thisTempo
+      beatTimeAtStartOfPiece *= parseInt project.beatLength
+      beatTimeAtStartOfPiece = beatTimeAtStartOfPiece // 1
+      beatTimeAtStartOfPiece += ''
+
+    playPiece = _.cloneDeep @state.project
+    playPiece.beatLength = beatTimeAtStartOfPiece
+    playPiece.score = _.map playPiece.score, (voice) =>
+      voice.slice @state.playFrom, @state.playTo
+
+    playPiece.time = playPiece.time.slice @state.playFrom, @state.playTo
+
     submission = 
-      projectName: @state.project.name
-      project:     JSON.stringify @state.project, null, 2
+      projectName: @state.project.name + '_PIECE'
+      project:     JSON.stringify playPiece, null, 2
 
     $.post destinationURL, submission
       .done (data) =>
@@ -254,129 +292,43 @@ WorkSpace = React.createClass
 
 
   render: ->
+
+
     div null,
 
 
       # Options
 
 
-      div {className: 'row'},
-        div {className: 'column'},
+      div className: 'row',
+        div className: 'column',
 
           p
             className: 'point'
             'options'
 
-        div {className: 'column'},
+        div className: 'column',
 
           input
             className: 'submit'
             type:      'submit'
             value:     'build'
             onClick:   @build
-        
-        div {className: 'column'},
-          
-          input
-            className: 'submit'
-            type:      'submit'
-            value:     'update'
-            onClick:   @update
 
-        div {className: 'column'},
-          
-          input
-            className: 'submit'
-            type:      'submit'
-            value:     'play'
-            onClick:   @play
-
-        div {className: 'column'},
+        div className: 'column',
 
           input
             className: @state.serverCom
             value:     ''
 
-
-      # Display 
-
-
-      div {className: 'row'},
-        div {className: 'column'},
-
-          p
-            className: 'point'
-            'display'
-
-
-        div {className: 'column half'},
-
-          p
-            className: 'point'
-            'bar is'
-
-        div {className: 'column half'},
-
-          input
-            className: 'input half'
-            value:     @state.barLength
-            onChange:  @changeBarLength
-
-        div {className: 'column half'},
-          
-          p
-            className: 'point'
-            'sub is'
-
-        div {className: 'column half'},
-
-          input
-            className: 'input half'
-            value:     @state.subLength
-            onChange:  @changeSubLength
-
-        div {className: 'column'},
-
-          input
-            className: 'submit'
-            type:      'submit'
-            value:     'indices/tempi'
-            onClick:   @indicesTempiSwap
-
-
-      div {className: 'row'},
-        div {className: 'column'}
-        div {className: 'column'},
-
-          p
-            className: 'point'
-            'display bar'
-
-        div {className: 'column half'},
-
-          input
-            className: 'submit half'
-            type:      'submit'
-            value:     '<'
-            onClick:   @subtractOneCurrentBar
-
-        div {className: 'column'},
+        div className: 'column',
 
           input
             className: 'input'
-            value:     @state.currentBar
-            onChange:  @currentBarChange
+            value:     @state.project.name
+            onChange:  @handleProjectName
 
-        div {className: 'column half'},
-
-          input
-            className: 'submit half'
-            type:      'submit'
-            value:     '>'
-            onClick:   @addOneCurrentBar
-
-
-      # Copy
+      # Play
 
       div className: 'row',
         div className: 'column',
@@ -384,7 +336,47 @@ WorkSpace = React.createClass
           input
             className: 'submit'
             type:      'submit'
-            value:     'copy bars'
+            value:     'play'
+            onClick:   @play
+
+
+        div className: 'column half',
+
+          p 
+            className: 'point'
+            'from'
+
+        div className: 'column half',
+
+          input
+            className:    'input half'
+            value:        @state.playFrom
+            onChange:     @playFromChange
+
+        div className: 'column half',
+
+          p
+            className: 'point'
+            'to'
+
+        div className: 'column half',
+
+          input
+            className: 'input half'
+            value:     @state.playTo
+            onChange:  @playToChange
+
+
+      # Copy
+
+
+      div className: 'row',
+        div className: 'column',
+
+          input
+            className: 'submit'
+            type:      'submit'
+            value:     'copy'
             onClick:   @copyBars
 
 
@@ -428,11 +420,97 @@ WorkSpace = React.createClass
             onChange:  @copyLengthChange
 
 
+      # Display 
+
+
+      div className: 'row',
+        div className: 'column',
+
+          p
+            className: 'point'
+            'display'
+
+
+        div className: 'column half',
+
+          p
+            className: 'point'
+            'bar is'
+
+        div className: 'column half',
+
+          input
+            className: 'input half'
+            value:     @state.barLength
+            onChange:  @changeBarLength
+
+        div className: 'column half',
+          
+          p
+            className: 'point'
+            'sub is'
+
+        div className: 'column half',
+
+          input
+            className: 'input half'
+            value:     @state.subLength
+            onChange:  @changeSubLength
+
+        div className: 'column',
+
+          input
+            className: 'submit'
+            type:      'submit'
+            value:     'bars/tempi'
+            onClick:   @indicesTempiSwap
+
+        div className: 'column',
+
+          input
+            className: 'submit'
+            type:      'submit'
+            value:     'times/beats'
+            onClick:   @beatsDurationsSwap
+
+
+      div className: 'row',
+        div className: 'column'
+        div className: 'column',
+
+          p
+            className: 'point'
+            'display bar'
+
+        div className: 'column half',
+
+          input
+            className: 'submit half'
+            type:      'submit'
+            value:     '<'
+            onClick:   @subtractOneCurrentBar
+
+        div className: 'column',
+
+          input
+            className: 'input'
+            value:     @state.currentBar
+            onChange:  @currentBarChange
+
+        div className: 'column half',
+
+          input
+            className: 'submit half'
+            type:      'submit'
+            value:     '>'
+            onClick:   @addOneCurrentBar
+
+
       # Dimensions
 
 
-      div {className: 'row'},
-        div {className: 'column'},
+      div className: 'row',
+        div className: 'column',
 
           p
             className: 'point'
@@ -440,7 +518,7 @@ WorkSpace = React.createClass
 
         _.map @state.dimensions, (dimension, dimensionIndex) =>
 
-          div {className: 'column'},
+          div className: 'column',
 
             input
               className:    'submit'
@@ -450,15 +528,15 @@ WorkSpace = React.createClass
               onClick:      @changeCurrentDimension
 
 
-      div {className: 'row'},
-        div {className: 'column'},
+      div className: 'row',
+        div className: 'column',
           
           p
             className: 'point'
             @state.dimensions[@state.currentDimension]
 
         _.map @state.ensemble, (voice, voiceIndex) =>
-          div {className: 'column half'},
+          div className: 'column half',
 
             p
               className: 'point'
@@ -468,14 +546,20 @@ WorkSpace = React.createClass
       _.map  @sliceOfScore(), (note, noteIndex) =>
         noteIndex += (@state.barLength * @state.currentBar)
 
-        div {className: 'row'},
-          div {className: 'column half'},
+        div className: 'row',
+          div className: 'column half',
 
-            p
-              className: 'point'
-              @productOfAllPriorTempi noteIndex
+            if @state.beatsOrDurations
+              p 
+                className: 'point'
+                noteIndex
 
-          div {className: 'column half'},
+            else
+              p
+                className: 'point'
+                @productOfAllPriorTempi noteIndex
+
+          div className: 'column half',
             if @state.indicesOrTempi
 
               p
@@ -492,7 +576,7 @@ WorkSpace = React.createClass
 
 
           _.map @state.score, (voice, voiceIndex) =>
-            div {className: 'column half'},
+            div className: 'column half',
 
               input
                 className:    'input half' + @barHighLight(noteIndex)
@@ -501,7 +585,7 @@ WorkSpace = React.createClass
                 'data-voice': voiceIndex
                 onChange:     @noteUpdate
 
-          div {className: 'column quarter'},
+          div className: 'column quarter',
 
             input
               className:    'submit quarter good'
@@ -510,7 +594,7 @@ WorkSpace = React.createClass
               'data-index': noteIndex
               onClick:      @addNoteAt
 
-          div {className: 'column quarter'},
+          div className: 'column quarter',
 
             input
               className:    'submit quarter danger'

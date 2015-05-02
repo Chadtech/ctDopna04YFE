@@ -29,9 +29,46 @@ func sine( sustain int, frequency float64) []int {
 
   for index := 0; index < sustain; index++ {
 
-    sample := float64(maxAmplitude) * math.Sin(math.Pi * frequency * float64(index))
+    sample := float64(maxAmplitude) * math.Sin(2 * math.Pi * frequency * float64(index))
 
     output[index] = int(sample)
+  }
+
+  return output
+}
+
+
+
+func saw( sustain int, frequency float64) []int {
+
+  output := make([]int, sustain)
+
+  frequency /= 44100
+
+  maxAmplitude := 32767
+
+  for index := 0; index < sustain; index++ {
+    output[ index ] = 0
+  }
+
+  for harmonicIndex := 1; harmonicIndex < 9; harmonicIndex++ {
+
+    for index := 0; index < sustain; index++ {
+
+      sample := float64(maxAmplitude)
+      sample *= (math.Pow(-1, float64(harmonicIndex))) / float64(harmonicIndex)
+
+      sineArgument := float64(index * 2) * math.Pi
+      sineArgument *= float64(harmonicIndex)
+      sineArgument *= frequency
+
+      sample *= math.Sin(sineArgument)
+
+      sample *= 0.28
+
+      output[ index ] += int(sample)
+
+    }
   }
 
   return output
@@ -75,6 +112,48 @@ func ramp( audio []int ) []int {
 }
 
 
+func lopass( audio []int ) []int {
+
+  output := make([]int, len( audio ))
+
+  for outputIndex := 0; outputIndex < 64; outputIndex++ {
+    
+    output[ outputIndex ] = 0
+
+    for audioIndex := 0; audioIndex < (outputIndex + 1); audioIndex++ {
+
+      signedAudio := 0
+      signedAudio += audio[ outputIndex + audioIndex]
+      if signedAudio > 32767 {
+        signedAudio -= 65535
+      }
+
+      output[ outputIndex ] += signedAudio / outputIndex
+
+    }
+
+  }
+
+  for outputIndex := 64; outputIndex < (len(audio); outputIndex++ {
+    output[ outputIndex ] = 0
+
+    for audioIndex := 0; audioIndex < 64; audioIndex++ {
+
+      signedAudio := 0
+      signedAudio += audio[ outputIndex + audioIndex]
+      if signedAudio > 32767 {
+        signedAudio -= 65535
+      }
+
+      output[ outputIndex ] += signedAudio / 64
+
+    }
+
+  }
+
+  return output
+
+}
 
 // A function to change the volume of an audio buffer 
 func volume( audio []int, volume float32 ) []int {
@@ -87,6 +166,20 @@ func volume( audio []int, volume float32 ) []int {
 }
 
 
+
+func crop( audio []int, startAt int, duration int) []int {
+
+  // fmt.Println( len(audio), startAt, duration, startAt + duration - 1 )
+
+  output := make([]int, duration)
+
+  for sampleIndex := 0; sampleIndex < duration; sampleIndex++ {
+    output[ sampleIndex ] = audio[ sampleIndex + startAt]
+  }
+
+  return output
+
+}
 
 //  A function to pad the beginning of an audio buffer with
 //  silence
@@ -106,7 +199,7 @@ func delayBy( audio []int, delay int) []int {
 
 
 
-func convolve( audio []int, convolveSeed []int, volumeReduction float32 ) []int {
+func convolve( audio []int, convolveSeed []int) []int {
 
   lengthOfOutput := int64(len(audio) + len(convolveSeed))
 
@@ -121,9 +214,16 @@ func convolve( audio []int, convolveSeed []int, volumeReduction float32 ) []int 
 
     for audioIndex := int64(0); audioIndex < int64(len(audio)); audioIndex++ {
 
-      factor := volumeReduction * (float32(convolveSeed[ convolveIndex ]) / 32767)
+      atConvolve := convolveSeed[ convolveIndex ]
+      if atConvolve > 32768 {
+        atConvolve -= 65536
+      }
 
-      output[ convolveIndex + audioIndex ] += int(float32(audio[ audioIndex ]) * factor)
+
+      factor := (float64(atConvolve) / 32767)
+
+
+      output[ convolveIndex + audioIndex ] += int(float64(audio[ audioIndex ]) * factor)
 
     }
 
@@ -149,8 +249,8 @@ func readWAV( openFileName string ) []int{
 
   sizeOfAudioBuffer += int64(durationByte[0])
   sizeOfAudioBuffer += 256 * int64(durationByte[1])
-  sizeOfAudioBuffer += 4096 * int64(durationByte[2])
-  sizeOfAudioBuffer += 65536 * int64(durationByte[3])
+  sizeOfAudioBuffer += 65536 * int64(durationByte[2])
+  sizeOfAudioBuffer += 16777216 * int64(durationByte[3])
   durationOfAudio := int64(sizeOfAudioBuffer / 2)
 
   output := make([]int, durationOfAudio )
@@ -172,85 +272,14 @@ func readWAV( openFileName string ) []int{
 }
 
 
+
+
+
 // A function to write an audio buffer to a 
 // single channel wav file
-func writeWAV( saveFileName string, audio []int) {
+// func writeWAV( saveFileName string, audio []int) {
 
-  savedFile, err := os.Create(saveFileName)
-  check(err)
-
-  wavHeader := make([]byte, 44)
-
-  wavHeader[0] = 82
-  wavHeader[1] = 73
-  wavHeader[2] = 70
-  wavHeader[3] = 70
-
-  wavHeader[4] = 36
-  wavHeader[5] = 8
-  wavHeader[6] = 0
-  wavHeader[7] = 0
-
-  wavHeader[8]  = 87
-  wavHeader[9]  = 65
-  wavHeader[10] = 86
-  wavHeader[11] = 69
-
-  wavHeader[12] = 102
-  wavHeader[13] = 109
-  wavHeader[14] = 116
-  wavHeader[15] = 32
- 
-  wavHeader[16] = 16
-  wavHeader[17] = 0
-  wavHeader[18] = 0
-  wavHeader[19] = 0
-
-  wavHeader[20] = 1
-  wavHeader[21] = 0
-  wavHeader[22] = 1
-  wavHeader[23] = 0
-
-  wavHeader[24] = 172
-  wavHeader[25] = 68
-  wavHeader[26] = 0
-  wavHeader[27] = 0
-
-  wavHeader[28] = 172
-  wavHeader[29] = 68
-  wavHeader[30] = 0
-  wavHeader[31] = 0
-
-  wavHeader[32] = 4
-  wavHeader[33] = 0
-  wavHeader[34] = 16
-  wavHeader[35] = 0
-
-  wavHeader[36] = 100
-  wavHeader[37] = 97
-  wavHeader[38] = 116
-  wavHeader[39] = 97
-
-  wavHeader[40] = byte(len(audio) % 256)
-  wavHeader[41] = byte(len(audio) / 256)
-  wavHeader[42] = byte(len(audio) / 4096)
-  wavHeader[43] = byte(len(audio) / 65536)
-
-  wavData := make([]byte, (len(audio)) * 2)
-
-  for audioIndex := 0; audioIndex < len(audio); audioIndex++ {
-
-    wavData[ (audioIndex * 2) + 1 ] = byte(audio[audioIndex] / 256)
-    wavData[ audioIndex * 2 ] = byte(audio[audioIndex] % 256)
-
-  }
-
-  savedFile.Write(wavHeader)
-  savedFile.Write(wavData)
-
-  savedFile.Close()
-
-}
+// }
 
 
 
@@ -374,8 +403,6 @@ func main() {
   }
 
 
-
-
   // Read the data for every note, which is an array
   // of values, with each indice corresponding to a dimension
   score := make([][][]float32, ensembleSize)
@@ -410,7 +437,7 @@ func main() {
     pieceDurationInSamples += int64(beatTimes[ timeIndex ])
   }
 
-
+  pieceDurationInSamples *= 2
 
   // Create an audio buffer for the left and right channels
   pieceL := make([]int, pieceDurationInSamples)
@@ -427,6 +454,7 @@ func main() {
   var indexOfSustain int
   var indexOfFrequency int
   var indexOfAmplitude int
+  var indexOfStartAt int
 
   for dimensionIndex := 0; dimensionIndex < numberOfDimensions; dimensionIndex++ {
     
@@ -441,8 +469,12 @@ func main() {
     if dimensions[ dimensionIndex ] == "000amplitude" {
       indexOfAmplitude = dimensionIndex + 1
     }
-  }
 
+    if dimensions[ dimensionIndex ] == "00000startat" {
+      indexOfStartAt = dimensionIndex + 1
+    }
+
+  }
 
 
   // Read through the entire score, generate an audio buffer
@@ -450,7 +482,6 @@ func main() {
   // audio buffer
   for ensembleIndex := 0; ensembleIndex < ensembleSize; ensembleIndex++ {
     
-
 
       // Get the name for the convolve file
       // (a wav file)
@@ -468,9 +499,7 @@ func main() {
 
       ensembleConvolves[ ensembleIndex ] = ensembleConvolves[ ensembleIndex][ (convolveNameStartAt - 1) : 12 ]
 
-      convolveSeed := readWAV( "stPuchL.wav" )
-
-
+      convolveSeed := readWAV( ensembleConvolves[ ensembleIndex ])
 
       // Figure out from what direction, this voice
       // is coming from
@@ -495,7 +524,43 @@ func main() {
 
     // Check for the type of this voice, and generate the 
     // Notes according to that voice
-    if ensembleTypes[ ensembleIndex ] == "sine"{
+    if ensembleTypes[ ensembleIndex ] == "samp" {
+
+      var timeAtThisNote int64 = 0
+
+      for pieceIndex := 0; pieceIndex < pieceDurationInBeats; pieceIndex++ {
+        if score[ ensembleIndex ][ pieceIndex ][0] == 1 {
+
+          sustain   := int(score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ])
+          // frequency := score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ]
+          amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
+          startAt   := int(score[ ensembleIndex ][ pieceIndex ][ indexOfStartAt])
+
+          thisNote := make([]int, 1)
+          thisNote[0] = int(float32(32766) * amplitude)
+
+          thisNote    = convolve( thisNote, convolveSeed )
+          thisNote    = crop( thisNote, startAt, sustain )
+          thisNote    = ramp( thisNote )
+          thisNote    = delayBy( thisNote, delay )
+
+
+          for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
+            pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+            pieceL[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+          }
+        }
+
+        timeAtThisNote += int64(beatTimes[ pieceIndex ])
+
+      }
+    }
+
+
+
+    // Check for the type of this voice, and generate the 
+    // Notes according to that voice
+    if ensembleTypes[ ensembleIndex ] == "sine" {
 
       var timeAtThisNote int64 = 0
 
@@ -507,18 +572,83 @@ func main() {
           amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
 
           thisNote := sine(sustain, float64(frequency) )
+
           thisNote = ramp( thisNote )
           thisNote = volume( thisNote, float32(amplitude) )
-          thisNote = fadeout( thisNote )
 
           thisNote = delayBy( thisNote, delay )
-          thisNote = convolve( thisNote, convolveSeed, 0.05 )
+          thisNote = convolve( thisNote, convolveSeed )
 
           for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
             pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
             pieceL[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
           }
+        }
 
+        timeAtThisNote += int64(beatTimes[ pieceIndex ])
+
+      }
+    }
+
+
+
+    if ensembleTypes[ ensembleIndex ] == "sinb" {
+
+      var timeAtThisNote int64 = 0
+
+      for pieceIndex := 0; pieceIndex < pieceDurationInBeats; pieceIndex++ {
+        if score[ ensembleIndex ][ pieceIndex ][0] == 1 {
+
+          sustain := int(score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ])
+          frequency := score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ]
+          amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
+
+          thisNote := sine(sustain, float64(frequency) )
+
+          thisNote = ramp( thisNote )
+          thisNote = volume( thisNote, float32(amplitude) )
+          thisNote = fadeout( thisNote )
+
+          thisNote = delayBy( thisNote, delay )
+          thisNote = convolve( thisNote, convolveSeed )
+
+          for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
+            pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+            pieceL[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+          }
+        }
+
+        timeAtThisNote += int64(beatTimes[ pieceIndex ])
+
+      }
+    }
+
+
+
+    if ensembleTypes[ ensembleIndex ] == "0saw" {
+
+      var timeAtThisNote int64 = 0
+
+      for pieceIndex := 0; pieceIndex < pieceDurationInBeats; pieceIndex++ {
+        if score[ ensembleIndex ][ pieceIndex ][0] == 1 {
+
+          sustain := int(score[ ensembleIndex ][ pieceIndex ][ indexOfSustain ])
+          frequency := score[ ensembleIndex ][ pieceIndex ][ indexOfFrequency ]
+          amplitude := score[ ensembleIndex ][ pieceIndex ][ indexOfAmplitude ]
+
+          thisNote := saw( sustain, float64(frequency) )
+
+          thisNote = ramp( thisNote )
+          thisNote = volume( thisNote, float32(amplitude) )
+          // thisNote = fadeout( thisNote )
+
+          thisNote = delayBy( thisNote, delay )
+          thisNote = convolve( thisNote, convolveSeed)
+
+          for sampleIndex := 0; sampleIndex < len(thisNote); sampleIndex++ {
+            pieceR[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+            pieceL[ int64(sampleIndex) + timeAtThisNote ] += thisNote[ sampleIndex ]
+          }
         }
 
         timeAtThisNote += int64(beatTimes[ pieceIndex ])
@@ -527,9 +657,182 @@ func main() {
     }
   }
 
-  // write the output audio buffers to disk as wavs
-  writeWAV( saveFileNameL, pieceL)
-  writeWAV( saveFileNameR, pieceR)
+  whenThePieceEnds := 0
+
+  for audioIndex := 0; audioIndex < len(pieceR); audioIndex++ {
+    rightClear := pieceR[ audioIndex ] == 0
+    leftClear := pieceR[ audioIndex ] == 0
+
+    // fmt.Println(rightClear, leftClear)
+
+    if !(rightClear && leftClear) {
+      // fmt.Println("AAAA")
+      whenThePieceEnds = audioIndex
+    }
+  }
+
+  // fmt.Println("TIMES ", whenThePieceEnds, len(pieceR))
+
+  pieceRFinal := make([]int, whenThePieceEnds)
+  pieceLFinal := make([]int, whenThePieceEnds)
+
+  for audioIndex := 0; audioIndex < whenThePieceEnds; audioIndex++ {
+    pieceRFinal[ audioIndex ] = pieceR[ audioIndex ]
+    pieceLFinal[ audioIndex ] = pieceL[ audioIndex ]
+  }
+
+  pieceR = pieceRFinal
+  pieceL = pieceLFinal
+
+  savedFile, err := os.Create( saveFileNameL )
+  check(err)
+
+  wavHeader := make([]byte, 44)
+
+  wavHeader[0] = 82
+  wavHeader[1] = 73
+  wavHeader[2] = 70
+  wavHeader[3] = 70
+
+  wavHeader[4] = 36
+  wavHeader[5] = 8
+  wavHeader[6] = 0
+  wavHeader[7] = 0
+
+  wavHeader[8]  = 87
+  wavHeader[9]  = 65
+  wavHeader[10] = 86
+  wavHeader[11] = 69
+
+  wavHeader[12] = 102
+  wavHeader[13] = 109
+  wavHeader[14] = 116
+  wavHeader[15] = 32
+ 
+  wavHeader[16] = 16
+  wavHeader[17] = 0
+  wavHeader[18] = 0
+  wavHeader[19] = 0
+
+  wavHeader[20] = 1
+  wavHeader[21] = 0
+  wavHeader[22] = 1
+  wavHeader[23] = 0
+
+  wavHeader[24] = 68
+  wavHeader[25] = 172
+  wavHeader[26] = 0
+  wavHeader[27] = 0
+
+  wavHeader[28] = 68
+  wavHeader[29] = 172
+  wavHeader[30] = 0
+  wavHeader[31] = 0
+
+  wavHeader[32] = 4
+  wavHeader[33] = 0
+  wavHeader[34] = 16
+  wavHeader[35] = 0
+
+  wavHeader[36] = 100
+  wavHeader[37] = 97
+  wavHeader[38] = 116
+  wavHeader[39] = 97
+
+  wavHeader[40] = byte(len(pieceL) % 256)
+  wavHeader[41] = byte(len(pieceL) / 256)
+  wavHeader[42] = byte(len(pieceL) / 4096)
+  wavHeader[43] = byte(len(pieceL) / 65536)
+
+  wavData := make([]byte, (len(pieceL)) * 2)
+
+  for audioIndex := 0; audioIndex < len(pieceL); audioIndex++ {
+
+    wavData[  audioIndex * 2      ] = byte(pieceL[ audioIndex ] % 256)
+    wavData[ (audioIndex * 2) + 1 ] = byte(pieceL[ audioIndex ] / 256)
+
+  }
+
+  savedFile.Write(wavHeader)
+  savedFile.Write(wavData)
+
+  savedFile.Close()
+
+
+  savedFile, err = os.Create( saveFileNameR )
+  check(err)
+
+  wavHeader = make([]byte, 44)
+
+  wavHeader[0] = 82
+  wavHeader[1] = 73
+  wavHeader[2] = 70
+  wavHeader[3] = 70
+
+  wavHeader[4] = 36
+  wavHeader[5] = 8
+  wavHeader[6] = 0
+  wavHeader[7] = 0
+
+  wavHeader[8]  = 87
+  wavHeader[9]  = 65
+  wavHeader[10] = 86
+  wavHeader[11] = 69
+
+  wavHeader[12] = 102
+  wavHeader[13] = 109
+  wavHeader[14] = 116
+  wavHeader[15] = 32
+ 
+  wavHeader[16] = 16
+  wavHeader[17] = 0
+  wavHeader[18] = 0
+  wavHeader[19] = 0
+
+  wavHeader[20] = 1
+  wavHeader[21] = 0
+  wavHeader[22] = 1
+  wavHeader[23] = 0
+
+  wavHeader[24] = 68
+  wavHeader[25] = 172
+  wavHeader[26] = 0
+  wavHeader[27] = 0
+
+  wavHeader[28] = 68
+  wavHeader[29] = 172
+  wavHeader[30] = 0
+  wavHeader[31] = 0
+
+  wavHeader[32] = 4
+  wavHeader[33] = 0
+  wavHeader[34] = 16
+  wavHeader[35] = 0
+
+  wavHeader[36] = 100
+  wavHeader[37] = 97
+  wavHeader[38] = 116
+  wavHeader[39] = 97
+
+  wavHeader[40] = byte(len(pieceR) % 256)
+  wavHeader[41] = byte(len(pieceR) / 256)
+  wavHeader[42] = byte(len(pieceR) / 4096)
+  wavHeader[43] = byte(len(pieceR) / 65536)
+
+  wavData = make([]byte, (len(pieceR)) * 2)
+
+  for audioIndex := 0; audioIndex < len(pieceR); audioIndex++ {
+
+    wavData[  audioIndex * 2      ] = byte(pieceR[ audioIndex ] % 256)
+    wavData[ (audioIndex * 2) + 1 ] = byte(pieceR[ audioIndex ] / 256)
+
+  }
+
+  savedFile.Write(wavHeader)
+  savedFile.Write(wavData)
+
+  savedFile.Close()
+
 
   // fmt.Println("DANK MEME")
 }

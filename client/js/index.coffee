@@ -26,11 +26,11 @@ IndexClass = React.createClass
 
   render: ->
 
-    div {},
-      div {className: 'spacer'}
-      div {className: 'indent'},
-        div {className: 'container'},
-          div {className: 'row'},
+    div null,
+      div className:      'spacer'
+      div className:      'indent',
+        div className:    'container',
+          div className:  'row',
 
             Title()
 
@@ -40,17 +40,17 @@ IndexClass = React.createClass
               currentPart: 0
 
           else
-            div {},
-              div {className: 'row'},
+            div null,
+              div className: 'row',
 
                 OpenPiece updateState: @updateState
 
-              div {className: 'row'},
+              div className: 'row',
 
                 NewPiece updateState: @updateState
 
 
-      div {className: 'spacer'}
+      div className: 'spacer'
 
 
 
@@ -60,4 +60,5 @@ IndexPage = React.createFactory IndexClass
 ctdopnayfeIndex = new IndexPage
 
 element = document.getElementById 'content'
+
 React.render ctdopnayfeIndex, element

@@ -6,6 +6,9 @@ module.exports = (data, next) ->
 
   projectName = data.name
 
+  if not fs.existsSync projectName
+    fs.mkdirSync projectName
+
   pathToJSON = projectName + '/' + projectName + '.json'
   fs.writeFileSync pathToJSON, data.project
 

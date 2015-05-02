@@ -110,7 +110,7 @@ module.exports =
           valueToAdd = channels[channelIndex][sampleIndex] + 65536
         else
           valueToAdd = channels[channelIndex][sampleIndex]
-        channelAudio.push (valueToAdd) % 256
+        channelAudio.push (valueToAdd % 256)
         channelAudio.push (valueToAdd // 256)
         channelIndex++
       sampleIndex++
@@ -234,12 +234,13 @@ module.exports =
     fs.writeFileSync fileName, outputFile
 
   open: (fileName) ->
+
     data = []
-    rawFile = fs.readFileSync(fileName)
+    rawFile = fs.readFileSync fileName 
 
     datumIndex = 0
     while datumIndex < rawFile.length
-      data.push rawFile.readUInt8(datumIndex)
+      data.push rawFile.readUInt8 datumIndex 
       datumIndex++
 
     numberOfChannels = data[22]
@@ -266,13 +267,12 @@ module.exports =
       channels.push []
       sampleIndex = 0
       while sampleIndex < (unsortedAudioData.length / numberOfChannels)
-        sample = sampleIndex * numberOfChannels
-        sample += channelIndex
-        sample = unsortedAudioData[sample]
-        channels[channels.length - 1].push sample
+        sample = unsortedAudioData[ (sampleIndex * numberOfChannels) + channelIndex ]
+        channels[ channels.length - 1].push sample
         sampleIndex++
       channelIndex++
 
+    # console.log channels
     channels
 
   mix: (input0, input1, place) ->

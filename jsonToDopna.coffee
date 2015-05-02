@@ -21,6 +21,7 @@ module.exports = (dopnaAsJson, fileName) ->
 
   content.push dopnaAsJson.scale.length
 
+
   # Convert each scale element into a string
   scale = _.map dopnaAsJson.scale, (interval) =>
     # All strings 8 characters long with zeros
@@ -29,6 +30,7 @@ module.exports = (dopnaAsJson, fileName) ->
     # Converted to hex
     _.map interval, (char) ->
       char.charCodeAt()
+
 
   # Converted to an array of hex values, from an array of arrays
   scale = _.reduce scale, (aggregate, interval) =>
@@ -40,6 +42,7 @@ module.exports = (dopnaAsJson, fileName) ->
 
   content.push dopnaAsJson.ensemble.length // 256
   content.push dopnaAsJson.ensemble.length
+
 
   for voice in dopnaAsJson.ensemble
     type = minimumZeros voice.type, 4
@@ -135,5 +138,5 @@ module.exports = (dopnaAsJson, fileName) ->
 
 
   output = new Buffer(content)
-  fs.writeFileSync fileName, output
 
+  fs.writeFileSync fileName, output
